@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.7204101">
+    <PropertyGroup>
+        <!-- Commande lancée par l'IDE pour démarrer le front -->
+        <StartupCommand>npm run dev</StartupCommand>
+        <!-- Le build Vite écrit dans Synégo.Server/wwwroot (voir vite.config.ts) -->
+        <BuildOutputFolder>$(MSBuildProjectDirectory)\..\Synégo.Server\wwwroot</BuildOutputFolder>
+        <!-- `dotnet build` ne relance pas npm à chaque fois ; build front : npm run build -->
+        <ShouldRunBuildScript>false</ShouldRunBuildScript>
+    </PropertyGroup>
+</Project>

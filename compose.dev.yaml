@@ -1,0 +1,70 @@
+﻿# =====================================================================
+#  Synégo : stack de DÉVELOPPEMENT complète (hot reload)
+#    docker compose -f compose.dev.yaml up --build
+#  Front : https://localhost:5173   API : http://localhost:8080   Émulateur : localhost:8085
+# =====================================================================
+name: synego-dev
+
+services:
+  # ---------- Front React (Vite + HMR) ----------
+  client:
+    image: node:24-slim
+    working_dir: /src/Synego.Client
+    command: sh -c "npm install && npx vite --host 0.0.0.0"
+    environment:
+      API_URL: http://server:8080
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./Synego.Client:/src/Synego.Client
+      - client-node-modules:/src/Synego.Client/node_modules # binaires Linux, pas ceux du Mac
+      - ${HOME}/.aspnet/https:/root/.aspnet/https:ro # certificat HTTPS de dev
+    depends_on:
+      - server
+
+  # ---------- API ASP.NET (dotnet watch) ----------
+  server:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    working_dir: /src/Synégo.Server
+    command: dotnet watch run --no-launch-profile --non-interactive
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      ConnectionStrings__Default: Data Source=/data/synego.db
+      DataProtection__KeysPath: /data/keys
+      Firestore__CredentialsPath: /run/secrets/firebase-service-account.json
+      # En dev, on utilise l'émulateur (aucune donnée réelle).
+      # Pour viser le vrai projet Firebase, commente la ligne suivante.
+      FIRESTORE_EMULATOR_HOST: firestore-emulator:8085
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/src
+      - server-bin:/src/Synégo.Server/bin
+      - server-obj:/src/Synégo.Server/obj
+      - nuget-cache:/root/.nuget/packages
+      - server-data:/data
+      - ./secrets:/run/secrets:ro
+    depends_on:
+      - firestore-emulator
+
+  # ---------- Émulateur Firestore ----------
+  firestore-emulator:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command: >
+      gcloud emulators firestore start
+      --host-port=0.0.0.0:8085
+      --project=${Firestore__ProjectId:-demo-synego}
+    ports:
+      - "8085:8085"
+
+volumes:
+  client-node-modules:
+  server-bin:
+  server-obj:
+  nuget-cache:
+  server-data:

@@ -3,3 +3,17 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+# Synégo
+Synégo.Server/wwwroot/
+*.db
+*.db-shm
+*.db-wal
+node_modules/
+.DS_Store
+
+# Secrets / environnement
+.env
+.env.*
+!.env.example
+secrets/*
+!secrets/README.md

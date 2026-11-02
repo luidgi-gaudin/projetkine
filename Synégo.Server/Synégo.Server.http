@@ -1,0 +1,31 @@
+@host = https://localhost:7253
+
+GET {{host}}/api/ping
+Accept: application/json
+
+###
+
+POST {{host}}/api/auth/register
+Content-Type: application/json
+X-Requested-With: XMLHttpRequest
+
+{
+  "email": "test@synego.fr",
+  "password": "MotDePasse!2026"
+}
+
+###
+
+POST {{host}}/api/auth/login?useCookies=true
+Content-Type: application/json
+X-Requested-With: XMLHttpRequest
+
+{
+  "email": "test@synego.fr",
+  "password": "MotDePasse!2026"
+}
+
+###
+
+GET {{host}}/api/auth/me
+Accept: application/json

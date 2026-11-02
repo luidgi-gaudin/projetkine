@@ -1,7 +1,35 @@
 ﻿services:
-  projetkiné:
-    image: projetkiné
+  synego:
+    image: synego
     build:
       context: .
-      dockerfile: projetkiné/Dockerfile
+      dockerfile: Synégo.Server/Dockerfile
+    ports:
+      - "${SYNEGO_PORT:-8080}:8080"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Dans le conteneur, le JSON du compte de service est monté en lecture seule.
+      Firestore__CredentialsPath: /run/secrets/firebase-service-account.json
+      # Si l'émulateur est activé dans .env, on pointe vers le service Docker.
+      FIRESTORE_EMULATOR_HOST: ${FIRESTORE_EMULATOR_HOST:+firestore-emulator:8085}
+    volumes:
+      - synego-data:/app/data
+      - ./secrets:/run/secrets:ro
+    restart: unless-stopped
 
+  # Émulateur Firestore local : docker compose --profile emulator up -d firestore-emulator
+  firestore-emulator:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    profiles: [ emulator ]
+    command: >
+      gcloud emulators firestore start
+      --host-port=0.0.0.0:8085
+      --project=${Firestore__ProjectId:-demo-synego}
+    ports:
+      - "8085:8085"
+
+volumes:
+  synego-data:
