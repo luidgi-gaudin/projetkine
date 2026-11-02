@@ -1,0 +1,7 @@
+﻿services:
+  projetkiné:
+    image: projetkiné
+    build:
+      context: .
+      dockerfile: projetkiné/Dockerfile
+
