@@ -11,6 +11,7 @@
 #    ADMIN_EMAILS        e-mail(s) du/des coach(s)
 #    LETSENCRYPT_EMAIL   e-mail pour les avis d'expiration Let's Encrypt
 #    FIREBASE_PROJECT_ID projet Firebase (défaut : celui du dépôt)
+#    EXTRA_DOMAINS       autres noms du serveur à inclure dans le certificat (ex. synego.duckdns.org)
 # =====================================================================
 set -euo pipefail
 
@@ -97,6 +98,33 @@ set_env Firebase__ProjectId "${FIREBASE_PROJECT_ID:-$(grep -oP "projectId: impor
 [ -n "${ADMIN_EMAILS:-}" ] && set_env Admin__Emails "$ADMIN_EMAILS"
 chmod 600 .env
 
+# ---------- Supervision Zabbix déjà présente (équipe Réseau) : gardée accessible sur :8443 ----------
+if docker ps --format '{{.Names}}' | grep -qx zabbix-web && [ ! -f compose.override.yaml ]; then
+    zabbix_net=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{println $k}}{{end}}' zabbix-web \
+        | awk '!/^synego_/ && NF {print; exit}')
+    if [ -n "$zabbix_net" ]; then
+        log "Zabbix détecté (réseau $zabbix_net) : interface conservée sur le port 8443"
+        grep -q '^ADMIN_PORT=' .env || set_env ADMIN_PORT 8444
+        cat > compose.override.yaml <<OVERRIDE
+# Généré par deploy/vps/install.sh : propre à ce serveur, non versionné.
+# Garde l'interface Zabbix de l'équipe Réseau sur https://<domaine>:8443, derrière le nginx de Synégo.
+services:
+  nginx:
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./deploy/nginx/zabbix.conf:/etc/nginx/conf.d/zabbix.conf:ro
+    networks:
+      - default
+      - zabbix
+networks:
+  zabbix:
+    name: $zabbix_net
+    external: true
+OVERRIDE
+    fi
+fi
+
 # ---------- 6. Démarrage ----------
 # Ports 80/443 : on arrête (sans rien supprimer) ce qui les occupe en dehors de Synégo.
 services=" $(docker compose config --services | tr '\n' ' ') "
@@ -126,8 +154,12 @@ if [ ! -s "$(docker volume inspect -f '{{.Mountpoint}}' synego_letsencrypt 2>/de
     log "Certificat Let's Encrypt pour $DOMAIN"
     email_args=(--register-unsafely-without-email)
     [ -n "${LETSENCRYPT_EMAIL:-}" ] && email_args=(--email "$LETSENCRYPT_EMAIL")
+    # EXTRA_DOMAINS : autres noms pointant vers ce serveur, ajoutés au même certificat (séparés par des espaces)
+    domain_args=(-d "$DOMAIN")
+    read -r -a extra_domains <<< "${EXTRA_DOMAINS:-}"
+    for extra in "${extra_domains[@]}"; do domain_args+=(-d "$extra"); done
     if docker compose run --rm --entrypoint certbot certbot certonly --webroot -w /var/www/certbot \
-        -d "$DOMAIN" --agree-tos --non-interactive "${email_args[@]}"; then
+        "${domain_args[@]}" --expand --agree-tos --non-interactive "${email_args[@]}"; then
         docker compose exec -T nginx synego-reload-certs
     else
         log "Certificat non obtenu (le domaine pointe-t-il vers ce serveur ?) : certificat temporaire conservé."

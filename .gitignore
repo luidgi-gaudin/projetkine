@@ -34,3 +34,6 @@ msbuild.log
 .deployed
 **/__pycache__/
 .claude/
+
+# Réglages propres à un serveur (générés par deploy/vps/install.sh)
+compose.override.yaml
