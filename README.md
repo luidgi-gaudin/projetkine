@@ -14,6 +14,7 @@ Site vitrine et espace client sécurisé pour une activité de **bien-être et d
 | Serveur web     | nginx (TLS Let's Encrypt, CSP, rate limiting)                                                                                                |
 | Admin           | VPN WireGuard : Adminer, Uptime Kuma, Mailpit, PostgreSQL, SSH (back-office aussi si `ADMIN_VPN_ONLY=true`)                                  |
 | Sauvegardes     | `pg_dump` chiffré chaque nuit, restauration en une commande                                                                                  |
+| CI/CD | GitHub Actions + déploiement automatique de `main` (pull toutes les 2 min, CI verte obligatoire) |
 | Suivi de projet | Trello : tableau créé par [`scripts/trello_import.py`](scripts/trello_import.py) depuis [`docs/scrum/backlog.json`](docs/scrum/backlog.json) |
 
 ## Démarrer en local
@@ -151,6 +152,47 @@ Uptime Kuma et Mailpit restent toujours réservés au VPN.
 
 **Rendez-vous dans l'espace client** : menu *Rendez-vous* : réserver, déplacer (le nouveau créneau remplace
 l'ancien, annulé automatiquement), annuler jusqu'à 24 h avant, rejoindre la visio, ajouter à l'agenda.
+
+## CI/CD : de `main` à la production, automatiquement
+
+```
+push / pull request ──► GitHub Actions (CI) ──► tout est vert ? ──► le serveur déploie main
+```
+
+**Intégration continue** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)), à chaque push et pull request :
+
+| Job | Contrôles |
+|---|---|
+| API .NET | compilation stricte (avertissements = erreurs), 28 tests xUnit, migrations à jour avec le modèle, aucun paquet NuGet vulnérable |
+| Front React | lint, types TypeScript, build de production, `npm audit` (gravité haute) |
+| Scripts shell | `shellcheck` sur tous les scripts de déploiement |
+| Docker | construction des images, démarrage de **toute la stack**, vérification de la santé et des règles d'accès (401, 404, redirection HTTPS) |
+
+**Déploiement continu** (pull, rien à ouvrir côté GitHub) : sur le serveur, `synego-deploy.timer` lance
+[`deploy/vps/synego-deploy.sh`](deploy/vps/synego-deploy.sh) toutes les 2 minutes. S'il y a un nouveau commit
+sur `main` **et que toute sa CI est verte** : sauvegarde de la base, reconstruction, redémarrage, contrôle de
+santé ; en cas d'échec, retour automatique à la version précédente. Un commit dont la CI échoue n'est jamais déployé.
+
+**Installer un serveur** (Ubuntu 22.04/24.04 ou Debian 12, une seule fois, en root) :
+
+```bash
+git clone https://github.com/luidgi-gaudin/projetkine.git /opt/synego
+```
+
+```bash
+ADMIN_EMAILS=luidgi.gaudin+coach@gmail.com bash /opt/synego/deploy/vps/install.sh
+```
+
+Le script installe Docker, le pare-feu, génère les mots de passe, démarre la stack, obtient le certificat HTTPS
+(adresse `<ip>.sslip.io` par défaut, ou `DOMAIN=…`) et active le déploiement automatique.
+
+| Sur le serveur | Commande |
+|---|---|
+| Suivre les déploiements | `journalctl -u synego-deploy -f` |
+| Déployer tout de suite | `systemctl start synego-deploy` |
+| Redéployer sans attendre la CI | `/opt/synego/deploy/vps/synego-deploy.sh --force` |
+| Version en ligne | `cat /opt/synego/.deployed` |
+| Suspendre les déploiements | `systemctl stop synego-deploy.timer` |
 
 ## Organisation du code
 

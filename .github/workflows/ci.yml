@@ -1,0 +1,153 @@
+# =====================================================================
+#  Synégo : intégration continue
+#  Chaque push et chaque pull request vers main passe par ces contrôles.
+#  Le serveur de production ne déploie un commit de main QUE si tous ces jobs sont verts
+#  (voir deploy/vps/synego-deploy.sh).
+# =====================================================================
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  api:
+    name: API .NET · build, tests, migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restauration
+        run: dotnet restore tests/Synego.Server.Tests
+
+      - name: Compilation (avertissements traités comme des erreurs)
+        run: dotnet build tests/Synego.Server.Tests -c Release --no-restore
+
+      - name: Tests
+        run: >
+          dotnet test tests/Synego.Server.Tests -c Release --no-build
+          --logger "trx;LogFileName=tests.trx" --results-directory TestResults
+
+      - name: Migrations à jour avec le modèle
+        run: |
+          dotnet tool restore
+          dotnet ef migrations has-pending-model-changes --project "Synégo.Server" -c Release --no-build
+
+      - name: Aucun paquet NuGet vulnérable
+        run: |
+          dotnet list "Synégo.Server" package --vulnerable --include-transitive | tee vulnerable.txt
+          if grep -q "has the following vulnerable packages" vulnerable.txt; then exit 1; fi
+
+      - name: Résultats des tests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-api
+          path: TestResults
+          if-no-files-found: ignore
+
+  client:
+    name: Front React · lint, types, build, audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: Synego.Client
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Synego.Client/package-lock.json
+
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - name: Types + build de production
+        run: npm run build
+      - name: Aucune dépendance de production vulnérable (gravité haute)
+        run: npm audit --omit=dev --audit-level=high
+
+  scripts:
+    name: Scripts shell · shellcheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: shellcheck
+        run: >
+          shellcheck -S warning synego.sh deploy/nginx/*.sh deploy/nginx/synego-reload-certs
+          deploy/backup/*.sh deploy/postgres/init/*.sh deploy/vps/*.sh
+
+  stack:
+    name: Docker · images + démarrage complet
+    needs: [api, client, scripts]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: .env de CI (mots de passe aléatoires, aucun secret réel)
+        run: ./synego.sh init
+
+      - name: Configuration compose valide
+        run: docker compose config -q
+
+      - name: Construction des images
+        run: docker compose build
+
+      - name: Démarrage de toute la stack
+        run: docker compose up -d
+
+      - name: Santé et règles d'accès
+        run: |
+          for _ in $(seq 1 60); do
+            curl -skf https://localhost/api/health && break
+            sleep 3
+          done
+          echo
+          check() { code=$(curl -sk -o /dev/null -w '%{http_code}' "$2"); echo "$1 : $code (attendu $3)"; [ "$code" = "$3" ]; }
+          check "Site"                      https://localhost/                    200
+          check "Santé API"                 https://localhost/api/health          200
+          check "Espace client sans jeton"  https://localhost/api/me              401
+          check "Back-office sans jeton"    https://localhost/api/admin/clients   401
+          check "Route API inconnue"        https://localhost/api/inconnue        404
+          check "Redirection HTTP → HTTPS"  http://localhost/                     301
+
+      - name: Journaux en cas d'échec
+        if: failure()
+        run: docker compose logs --tail 200
+
+      - name: Arrêt
+        if: always()
+        run: docker compose down -v
+
+  ready:
+    name: Prêt pour la production
+    if: github.ref == 'refs/heads/main'
+    needs: [stack]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Feu vert
+        run: |
+          echo "Tous les contrôles sont verts, le serveur peut déployer ${{ github.sha }}"

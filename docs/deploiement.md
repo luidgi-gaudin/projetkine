@@ -1,5 +1,10 @@
 # Déploiement sur le VPS
 
+> **Le plus simple** : `git clone https://github.com/luidgi-gaudin/projetkine.git /opt/synego` puis
+> `bash /opt/synego/deploy/vps/install.sh` fait tout (Docker, pare-feu, .env, HTTPS, déploiement automatique).
+> Ensuite, chaque commit poussé sur `main` dont la CI est verte part en production en ~2 minutes.
+> Les étapes ci-dessous détaillent l'installation manuelle et le durcissement (VPN, SSH par clé).
+
 Cible : Ubuntu 24.04 (ou Debian 12). **Pourquoi Linux** (à dire au client) : c'est le standard des
 serveurs web, il est léger, gratuit, et toutes nos briques (nginx, PostgreSQL, WireGuard) y tournent nativement.
 

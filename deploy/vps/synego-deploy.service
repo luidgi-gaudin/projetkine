@@ -1,0 +1,14 @@
+[Unit]
+Description=Synégo : déploiement continu depuis la branche main
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/synego
+# Réglages facultatifs (GITHUB_TOKEN, DEPLOY_BRANCH, REQUIRE_GREEN_CI…)
+EnvironmentFile=-/etc/synego-deploy.env
+ExecStart=/opt/synego/deploy/vps/synego-deploy.sh
+# Un build peut prendre quelques minutes sur un petit serveur
+TimeoutStartSec=30min
