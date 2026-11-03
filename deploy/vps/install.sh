@@ -56,8 +56,24 @@ if [ -d "$APP_DIR/.git" ]; then
     git -C "$APP_DIR" fetch --quiet origin "$BRANCH"
     git -C "$APP_DIR" checkout --quiet --force --detach "origin/$BRANCH"
 else
+    previous=""
+    if [ -e "$APP_DIR" ] && [ -n "$(ls -A "$APP_DIR" 2>/dev/null)" ]; then
+        # Dossier déjà présent mais pas un dépôt git (copie manuelle, essai précédent…) : on le met de côté, rien n'est supprimé.
+        previous="$APP_DIR.avant-install-$(date +%Y%m%d-%H%M%S)"
+        log "$APP_DIR existe déjà sans dépôt git : déplacé dans $previous"
+        find "$APP_DIR" -mindepth 1 -maxdepth 1 | head -n 25 || true
+        mv "$APP_DIR" "$previous"
+    fi
     log "Clonage de $REPO_URL"
     git clone --quiet --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
+    # Reprend la configuration existante : ses mots de passe correspondent aux volumes Postgres déjà créés.
+    if [ -n "$previous" ] && [ -f "$previous/.env" ]; then
+        log "Reprise du .env de $previous"
+        cp -p "$previous/.env" "$APP_DIR/.env"
+    fi
+    if [ -n "$previous" ] && [ -d "$previous/secrets" ]; then
+        cp -pn "$previous"/secrets/*.json "$APP_DIR/secrets/" 2>/dev/null || true
+    fi
 fi
 cd "$APP_DIR"
 
