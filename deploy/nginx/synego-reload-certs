@@ -1,0 +1,11 @@
+#!/bin/sh
+# Pointe nginx vers le certificat Let's Encrypt (s'il existe) puis recharge la configuration.
+# Après la première obtention : docker compose exec nginx synego-reload-certs
+set -eu
+LIVE="/etc/letsencrypt/live/${DOMAIN}"
+CERTS=/etc/nginx/certs
+if [ -s "$LIVE/fullchain.pem" ]; then
+    ln -sf "$LIVE/fullchain.pem" "$CERTS/fullchain.pem"
+    ln -sf "$LIVE/privkey.pem" "$CERTS/privkey.pem"
+fi
+[ "${1:-}" = "--no-reload" ] || nginx -s reload

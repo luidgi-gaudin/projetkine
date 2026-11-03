@@ -1,35 +1,187 @@
-﻿services:
-  synego:
-    image: synego
+# =====================================================================
+#  Synégo : stack complète (VPS ou machine locale)
+#    ./synego.sh init            crée .env avec des mots de passe aléatoires (une fois)
+#    ./synego.sh up -d --build   construit et démarre tout
+#  En local : https://localhost (site), http://localhost:8443 (back-office),
+#             http://localhost:8082 (Adminer), http://localhost:3001 (Uptime Kuma)
+#  Exposé sur Internet : nginx (80/443) uniquement.
+#  Exposé sur le VPN (ADMIN_BIND_IP=10.8.0.1) : Adminer, Uptime Kuma, Mailpit, PostgreSQL
+#  (et le back-office si ADMIN_VPN_ONLY=true ; sinon il est sur le site, derrière la connexion Coach).
+#  Variables : .env (voir .env.example). Schéma : docs/architecture.md
+# =====================================================================
+name: synego
+
+x-db-env: &db-env
+  PGHOST: db
+  PGDATABASE: synego
+
+services:
+  # ---------- Serveur web : site React + relais /api ----------
+  nginx:
     build:
       context: .
-      dockerfile: Synégo.Server/Dockerfile
-    ports:
-      - "${SYNEGO_PORT:-8080}:8080"
-    env_file:
-      - path: .env
-        required: false
+      dockerfile: deploy/nginx/Dockerfile
+      args:
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
+        VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET:-}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID:-}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
+    image: synego-nginx
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      # Dans le conteneur, le JSON du compte de service est monté en lecture seule.
-      Firestore__CredentialsPath: /run/secrets/firebase-service-account.json
-      # Si l'émulateur est activé dans .env, on pointe vers le service Docker.
-      FIRESTORE_EMULATOR_HOST: ${FIRESTORE_EMULATOR_HOST:+firestore-emulator:8085}
+      DOMAIN: ${DOMAIN:-localhost}
+      FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-localhost}
+      ADMIN_BIND_IP: ${ADMIN_BIND_IP:-127.0.0.1}
+      HTTPS_PORT: ${HTTPS_PORT:-443}
+      ADMIN_VPN_ONLY: ${ADMIN_VPN_ONLY:-false}
+      NGINX_ENVSUBST_FILTER: "^(DOMAIN|FIREBASE_AUTH_DOMAIN|ADMIN_BIND_IP|HTTPS_PORT)$"
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${ADMIN_BIND_IP:-127.0.0.1}:8443:8081" # zone admin via le VPN (toujours disponible)
     volumes:
-      - synego-data:/app/data
-      - ./secrets:/run/secrets:ro
+      - letsencrypt:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot:ro
+    depends_on:
+      - api
     restart: unless-stopped
 
-  # Émulateur Firestore local : docker compose --profile emulator up -d firestore-emulator
-  firestore-emulator:
-    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
-    profiles: [ emulator ]
-    command: >
-      gcloud emulators firestore start
-      --host-port=0.0.0.0:8085
-      --project=${Firestore__ProjectId:-demo-synego}
+  # ---------- Certificats Let's Encrypt (renouvellement automatique) ----------
+  certbot:
+    image: certbot/certbot:v3.1.0
+    entrypoint: sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done'
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    restart: unless-stopped
+
+  # ---------- API .NET (jamais exposée directement) ----------
+  api:
+    build: &api-build
+      context: .
+      dockerfile: deploy/api/Dockerfile
+      target: final
+    image: synego-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: Host=db;Database=synego;Username=synego_app;Password=${SYNEGO_APP_PASSWORD:?};GSS Encryption Mode=Disable
+      Firebase__ProjectId: ${Firebase__ProjectId:?Renseigne Firebase__ProjectId dans .env}
+      Admin__Emails: ${Admin__Emails:-}
+      App__PublicUrl: https://${DOMAIN:-localhost}
+      # false (défaut) : back-office sur le site, derrière la connexion Coach. true : uniquement via le VPN.
+      Security__RequireAdminZone: ${ADMIN_VPN_ONLY:-false}
+      Storage__Provider: ${Storage__Provider:-Local}
+      Storage__Bucket: ${Storage__Bucket:-}
+      Storage__CredentialsPath: /run/secrets/synego/${FIREBASE_CREDENTIALS_NAME:-firebase-service-account.json}
+      Storage__LocalPath: /app/data/documents
+      DataProtection__KeysPath: /app/data/keys
+      # E-mails (rappels 48 h / 24 h). Sans SMTP réel, ils arrivent dans Mailpit (via le VPN).
+      Email__Smtp__Host: ${SMTP_HOST:-mailpit}
+      Email__Smtp__Port: ${SMTP_PORT:-1025}
+      Email__Smtp__Username: ${SMTP_USERNAME:-}
+      Email__Smtp__Password: ${SMTP_PASSWORD:-}
+      Email__Smtp__Security: ${SMTP_SECURITY:-None}
+      Email__From: ${EMAIL_FROM:-rendez-vous@synego.fr}
+      Email__ReplyTo: ${EMAIL_REPLY_TO:-}
+      Booking__Calendly__PersonalAccessToken: ${CALENDLY_TOKEN:-}
+      Booking__Calendly__WebhookSigningKey: ${CALENDLY_WEBHOOK_KEY:-}
+      Booking__Types__0__CalendlyUrl: ${CALENDLY_URL_AUDIT:-https://calendly.com/votre-compte/audit-seminaire}
+      Booking__Types__1__CalendlyUrl: ${CALENDLY_URL_DECOUVERTE:-https://calendly.com/votre-compte/appel-decouverte}
+      Booking__Types__2__CalendlyUrl: ${CALENDLY_URL_SUIVI:-https://calendly.com/votre-compte/seance-suivi}
+    volumes:
+      - appdata:/app/data # documents (mode Local) + clés de chiffrement du jeton Calendly
+      - ./secrets:/run/secrets/synego:ro # clé de service Firebase (mode Firebase)
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # ---------- Migrations : compte propriétaire, puis s'arrête ----------
+  migrate:
+    build: *api-build
+    image: synego-api
+    command: [ "--migrate" ]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Migrations: Host=db;Database=synego;Username=synego_owner;Password=${SYNEGO_OWNER_PASSWORD:?};GSS Encryption Mode=Disable
+      Firebase__ProjectId: ${Firebase__ProjectId:?}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  # ---------- PostgreSQL ----------
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: synego
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Renseigne POSTGRES_PASSWORD dans .env}
+      SYNEGO_OWNER_PASSWORD: ${SYNEGO_OWNER_PASSWORD:?}
+      SYNEGO_APP_PASSWORD: ${SYNEGO_APP_PASSWORD:?}
+      SYNEGO_BACKUP_PASSWORD: ${SYNEGO_BACKUP_PASSWORD:?}
+      SYNEGO_READONLY_PASSWORD: ${SYNEGO_READONLY_PASSWORD:?}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d:ro
     ports:
-      - "8085:8085"
+      - "${ADMIN_BIND_IP:-127.0.0.1}:${DB_PORT:-5433}:5432" # VPN uniquement (DBeaver, psql)
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d synego" ]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # ---------- Sauvegardes chiffrées quotidiennes ----------
+  backup:
+    build:
+      context: .
+      dockerfile: deploy/backup/Dockerfile
+    image: synego-backup
+    environment:
+      <<: *db-env
+      PGUSER: synego_backup
+      PGPASSWORD: ${SYNEGO_BACKUP_PASSWORD:?}
+      SYNEGO_OWNER_PASSWORD: ${SYNEGO_OWNER_PASSWORD:?}
+      BACKUP_PASSPHRASE: ${BACKUP_PASSPHRASE:?Renseigne BACKUP_PASSPHRASE dans .env}
+      BACKUP_CRON: ${BACKUP_CRON:-0 2 * * *}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+    volumes:
+      - ${BACKUP_DIR:-./backups}:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------- Outils d'administration : VPN uniquement ----------
+  adminer:
+    image: adminer:4.8.1
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - "${ADMIN_BIND_IP:-127.0.0.1}:8082:8080"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "${ADMIN_BIND_IP:-127.0.0.1}:8025:8025" # VPN uniquement
+    restart: unless-stopped
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1.23.16
+    volumes:
+      - uptime-kuma:/app/data
+    ports:
+      - "${ADMIN_BIND_IP:-127.0.0.1}:3001:3001"
+    restart: unless-stopped
 
 volumes:
-  synego-data:
+  pgdata:
+  appdata:
+  letsencrypt:
+  certbot-www:
+  uptime-kuma:
+

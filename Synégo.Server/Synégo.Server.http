@@ -1,31 +1,34 @@
-@host = https://localhost:7253
+# Requêtes de test (Rider / VS Code REST Client).
+# Pour les routes protégées : copier l'ID token Firebase depuis le navigateur
+# (DevTools > console : await firebase.auth().currentUser.getIdToken()) dans @token.
+@host = http://localhost:5270
+@token = colle-ici-un-id-token-firebase
 
-GET {{host}}/api/ping
-Accept: application/json
+GET {{host}}/api/health
 
 ###
 
-POST {{host}}/api/auth/register
+GET {{host}}/api/booking/types
+
+###
+
+POST {{host}}/api/contact
 Content-Type: application/json
-X-Requested-With: XMLHttpRequest
 
 {
-  "email": "test@synego.fr",
-  "password": "MotDePasse!2026"
+  "kind": "Devis",
+  "name": "Camille Martin",
+  "email": "camille@example.com",
+  "company": "ACME",
+  "message": "Séminaire d'une journée pour 15 personnes en juin."
 }
 
 ###
 
-POST {{host}}/api/auth/login?useCookies=true
-Content-Type: application/json
-X-Requested-With: XMLHttpRequest
-
-{
-  "email": "test@synego.fr",
-  "password": "MotDePasse!2026"
-}
+GET {{host}}/api/me
+Authorization: Bearer {{token}}
 
 ###
 
-GET {{host}}/api/auth/me
-Accept: application/json
+GET {{host}}/api/admin/clients
+Authorization: Bearer {{token}}

@@ -1,20 +1,11 @@
 namespace Synego.Server.Security;
 
-/// <summary>Ajoute les en-têtes HTTP de sécurité à chaque réponse.</summary>
+/// <summary>
+///     En-têtes de sécurité des réponses de l'API (JSON / fichiers).
+///     Ceux du site (CSP de la page, HSTS…) sont posés par nginx : voir deploy/nginx.
+/// </summary>
 public static class SecurityHeadersMiddleware
 {
-    const string ContentSecurityPolicy =
-        "default-src 'self'; "
-      + "script-src 'self'; "
-      + "style-src 'self'; "
-      + "img-src 'self' data:; "
-      + "font-src 'self'; "
-      + "connect-src 'self'; "
-      + "object-src 'none'; "
-      + "base-uri 'self'; "
-      + "form-action 'self'; "
-      + "frame-ancestors 'none'";
-
     public static IApplicationBuilder UseSecurityHeaders(this IApplicationBuilder app) =>
         app.Use(async (context, next) =>
         {
@@ -22,9 +13,8 @@ public static class SecurityHeadersMiddleware
             headers["X-Content-Type-Options"] = "nosniff";
             headers["X-Frame-Options"] = "DENY";
             headers["Referrer-Policy"] = "no-referrer";
-            headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
-            headers["Cross-Origin-Opener-Policy"] = "same-origin";
-            headers["Content-Security-Policy"] = ContentSecurityPolicy;
+            headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
+            headers["Cache-Control"] = "no-store";
             await next();
         });
 }

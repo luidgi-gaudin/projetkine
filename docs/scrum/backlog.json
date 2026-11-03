@@ -1,0 +1,337 @@
+{
+  "board": "Synégo · Sprint 1",
+  "sprintGoal": "À la fin du sprint, un visiteur trouve Synégo à une adresse sécurisée, découvre les séminaires, réserve un premier rendez-vous ou demande un devis, et un client retrouve ses documents dans un espace privé. La gérante administre le tout depuis un accès réservé, surveillé et sauvegardé.",
+  "definitionOfDone": [
+    "Fonctionne depuis l'extérieur du réseau de test (adresse publique)",
+    "HTTPS valide (cadenas, aucun avertissement)",
+    "Règles d'accès à jour dans docs/architecture.md (qui parle à quoi)",
+    "Schéma d'architecture à jour",
+    "Surveillé par Uptime Kuma, alerte testée",
+    "Données sensibles accessibles uniquement par le VPN",
+    "Sauvegarde existante et restauration testée",
+    "Textes FR + EN, thème clair + sombre, affichage mobile vérifié",
+    "dotnet build et npm run build sans erreur ni avertissement",
+    "Fiche de preuve remplie dans la carte",
+    "Démontré au PO, puis accepté"
+  ],
+  "stories": [
+    {
+      "id": "S1",
+      "title": "Mes visiteurs accèdent à mon site à une adresse simple et sécurisée",
+      "story": "En tant que gérante, je veux que mes visiteurs trouvent mon site à une adresse simple, avec le cadenas, afin de donner confiance dès la première visite.",
+      "proof": "ouvrir https://DOMAINE depuis un téléphone en 4G.",
+      "priority": "Critique",
+      "points": 5,
+      "tasks": [
+        {
+          "label": "Réseau",
+          "title": "Commander le VPS, appliquer deploy/vps/01-hardening.sh (UFW, fail2ban, SSH par clé)"
+        },
+        {
+          "label": "Réseau",
+          "title": "Nom de domaine : enregistrement A vers le VPS"
+        },
+        {
+          "label": "Réseau",
+          "title": "nginx + certificat Let's Encrypt (certbot), redirection HTTP vers HTTPS"
+        },
+        {
+          "label": "Dev",
+          "title": "Build de production du site React servi par nginx"
+        },
+        {
+          "label": "Mixte",
+          "title": "Démontrer au PO : cadenas + page d'accueil depuis l'extérieur"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "title": "Mes visiteurs découvrent mes séminaires et me demandent un devis",
+      "story": "En tant que gérante, je veux présenter mes séminaires sans afficher de prix, afin que chaque visiteur intéressé me demande un devis.",
+      "proof": "envoyer une demande de devis depuis la page Séminaires et la retrouver dans le back-office.",
+      "priority": "Critique",
+      "points": 5,
+      "tasks": [
+        {
+          "label": "Dev",
+          "title": "Pages Accueil, Séminaires, Accompagnement, Approche (textes à valider par le PO)"
+        },
+        {
+          "label": "Dev",
+          "title": "Formulaire devis/contact relié à l'espace de tickets"
+        },
+        {
+          "label": "Réseau",
+          "title": "Limitation de débit nginx sur /api et vérification des en-têtes de sécurité (CSP, HSTS)"
+        },
+        {
+          "label": "Mixte",
+          "title": "Valider les textes avec le client (via le PO)"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "title": "Un prospect réserve un audit séminaire ou un appel découverte sans m'appeler",
+      "story": "En tant que prospect, je veux choisir un créneau en ligne, afin d'être rappelé sans attendre une confirmation manuelle.",
+      "proof": "réserver un audit depuis la page Rendez-vous.",
+      "priority": "Haute",
+      "points": 3,
+      "tasks": [
+        {
+          "label": "Dev",
+          "title": "Créer les types d'événements Calendly et intégrer l'iframe (section prospects)"
+        },
+        {
+          "label": "Dev",
+          "title": "Recopier les rendez-vous en base (jeton Calendly, /api/booking/confirm)"
+        },
+        {
+          "label": "Dev",
+          "title": "Back-office : la gérante relie son Calendly (jeton) et choisit ses événements"
+        },
+        {
+          "label": "Réseau",
+          "title": "Autoriser Calendly dans la CSP nginx, tester depuis l'extérieur"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "title": "Mes clients se connectent à leur espace par e-mail, SMS ou Google",
+      "story": "En tant que client, je veux me connecter simplement, afin de retrouver mon espace sans retenir un mot de passe de plus.",
+      "proof": "connexion Google puis par SMS.",
+      "priority": "Haute",
+      "points": 5,
+      "tasks": [
+        {
+          "label": "Dev",
+          "title": "Activer les 3 méthodes dans Firebase Auth, écrans connexion / inscription"
+        },
+        {
+          "label": "Dev",
+          "title": "Vérification des jetons Firebase par l'API, création du compte en base"
+        },
+        {
+          "label": "Réseau",
+          "title": "Domaine de production dans les domaines autorisés Firebase, CSP Google/reCAPTCHA"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "title": "Mes clients retrouvent leurs documents en toute confidentialité",
+      "story": "En tant que client, je veux télécharger mes programmes et comptes rendus, afin de les avoir toujours avec moi, sans que personne d'autre ne puisse les voir.",
+      "proof": "la gérante dépose un document, le client le télécharge ; un autre client ne le voit pas.",
+      "priority": "Haute",
+      "points": 5,
+      "tasks": [
+        {
+          "label": "Dev",
+          "title": "Dépôt / téléchargement via l'API (contrôle du propriétaire, taille, format)"
+        },
+        {
+          "label": "Réseau",
+          "title": "Bucket Firebase Storage : règles « tout refuser », clé de service en secret Docker"
+        },
+        {
+          "label": "Mixte",
+          "title": "Tester l'accès croisé entre deux comptes clients"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "title": "Mes clients signés réservent eux-mêmes leurs séances de suivi",
+      "story": "En tant que gérante, je veux que seuls mes clients signés puissent réserver une séance de suivi, afin de garder ces créneaux pour eux.",
+      "proof": "compte non signé verrouillé, puis ouvert après signature dans le back-office.",
+      "priority": "Moyenne",
+      "points": 3,
+      "tasks": [
+        {
+          "label": "Dev",
+          "title": "Section « déjà client », lien Calendly secret envoyé aux clients signés uniquement"
+        },
+        {
+          "label": "Dev",
+          "title": "Signalement des réservations faites par un non-client"
+        },
+        {
+          "label": "Réseau",
+          "title": "Webhook Calendly signé (si offre Standard) exposé en HTTPS"
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "title": "Mes informations sensibles ne sont accessibles que par un accès privé",
+      "story": "En tant que gérante, je veux que l'administration et les données soient invisibles depuis Internet, afin que même un mot de passe volé ne suffise pas.",
+      "proof": "back-office introuvable sans VPN, accessible avec.",
+      "priority": "Critique",
+      "points": 8,
+      "tasks": [
+        {
+          "label": "Réseau",
+          "title": "Serveur WireGuard (02-wireguard.sh), profil VPN pour la gérante (QR code)"
+        },
+        {
+          "label": "Réseau",
+          "title": "Back-office, Adminer, PostgreSQL publiés sur 10.8.0.1 uniquement ; SSH réservé au VPN"
+        },
+        {
+          "label": "Dev",
+          "title": "Back-office : rôle Admin + filtre de zone (X-Synego-Zone)"
+        },
+        {
+          "label": "Dev",
+          "title": "Comptes PostgreSQL aux droits limités (owner, app, backup, readonly)"
+        },
+        {
+          "label": "Mixte",
+          "title": "Démontrer : refusé sans VPN, accessible avec"
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "title": "Si une information est effacée par erreur, on la récupère",
+      "story": "En tant que gérante, je veux que mes données soient sauvegardées automatiquement, afin de ne jamais rien perdre.",
+      "proof": "supprimer un document puis le restaurer.",
+      "priority": "Haute",
+      "points": 5,
+      "tasks": [
+        {
+          "label": "Réseau",
+          "title": "Sauvegarde chiffrée nocturne (conteneur backup), copie hors du VPS"
+        },
+        {
+          "label": "Dev",
+          "title": "Suppression différée des documents (fichier conservé 30 jours)"
+        },
+        {
+          "label": "Mixte",
+          "title": "Test de restauration documenté avec captures"
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "title": "Je suis prévenue quand quelque chose ne va pas",
+      "story": "En tant que gérante, je veux être alertée si le site tombe, afin de réagir avant mes clients.",
+      "proof": "arrêter l'API, l'alerte arrive sur le téléphone.",
+      "priority": "Haute",
+      "points": 3,
+      "tasks": [
+        {
+          "label": "Dev",
+          "title": "Point de santé /api/health (base + stockage)"
+        },
+        {
+          "label": "Réseau",
+          "title": "Uptime Kuma (via VPN) : moniteurs santé + certificat, notification téléphone"
+        },
+        {
+          "label": "Mixte",
+          "title": "Test d'alerte et procédure de redémarrage (docs/scrum/urgences.md)"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "title": "Mes clients posent leurs questions et suivent les réponses",
+      "story": "En tant que client, je veux écrire à la gérante depuis mon espace et retrouver ses réponses, afin de ne rien perdre dans mes e-mails.",
+      "proof": "demande déposée, réponse, clôture.",
+      "priority": "Moyenne",
+      "points": 3,
+      "tasks": [
+        {
+          "label": "Dev",
+          "title": "Espace de tickets côté client et back-office"
+        },
+        {
+          "label": "Réseau",
+          "title": "Sauvegarde et surveillance incluent les tickets"
+        },
+        {
+          "label": "Mixte",
+          "title": "Clarifier avec le client qui utilise les tickets et pour quoi"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "title": "Mes visiteurs lisent le site confortablement : sur téléphone, en anglais ou de nuit",
+      "story": "En tant que visiteur, je veux un site agréable sur mon téléphone, en anglais si besoin et en thème sombre, afin d'être à l'aise quel que soit mon contexte.",
+      "proof": "Parcours complet sur un téléphone en 4G : bascule FR/EN et clair/sombre, aucun défilement horizontal.",
+      "priority": "Basse",
+      "points": 2,
+      "tasks": [
+        {
+          "label": "Dev",
+          "title": "Passe responsive mobile (375 px) sur toutes les pages"
+        },
+        {
+          "label": "Dev",
+          "title": "Traductions en.ts complètes et relues"
+        },
+        {
+          "label": "Réseau",
+          "title": "Vérifier cache et compression nginx des polices et du JS"
+        },
+        {
+          "label": "Mixte",
+          "title": "Test sur téléphone hors réseau de l'école"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "title": "Mes clients n'oublient pas leurs rendez-vous",
+      "story": "En tant que gérante, je veux que mes clients reçoivent un rappel 48 h puis 24 h avant leur rendez-vous, afin de limiter les oublis et les annulations de dernière minute.",
+      "proof": "Un rendez-vous de test reçoit le rappel 48 h (avec bouton d'annulation) puis le rappel 24 h (lien Meet, plus d'annulation), visibles dans Mailpit.",
+      "priority": "Haute",
+      "points": 5,
+      "tasks": [
+        {
+          "label": "Dev",
+          "title": "Service de rappels 48 h / 24 h et e-mails FR/EN aux couleurs de la marque"
+        },
+        {
+          "label": "Dev",
+          "title": "« Ajouter à mon agenda » (Google, Outlook, Apple, Samsung, .ics)"
+        },
+        {
+          "label": "Réseau",
+          "title": "Compte SMTP (Brevo…), enregistrements SPF/DKIM du domaine pour ne pas finir en spam"
+        },
+        {
+          "label": "Mixte",
+          "title": "Démonstration avec Mailpit et règle d'annulation à 24 h"
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "title": "Je garde le fil de chaque client",
+      "story": "En tant que coach, je veux noter mes observations sur chaque client, afin de préparer la séance suivante sans rien oublier.",
+      "proof": "Ajouter, épingler, modifier puis supprimer une note dans la fiche d'un client ; vérifier qu'elle n'apparaît jamais côté client.",
+      "priority": "Moyenne",
+      "points": 3,
+      "tasks": [
+        {
+          "label": "Dev",
+          "title": "Notes privées dans la fiche client du back-office"
+        },
+        {
+          "label": "Réseau",
+          "title": "Vérifier que les notes sont incluses dans la sauvegarde chiffrée"
+        },
+        {
+          "label": "Mixte",
+          "title": "Règle RGPD : pas de données de santé dans les notes, affichée au coach"
+        }
+      ]
+    }
+  ]
+}

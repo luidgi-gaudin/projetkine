@@ -6,17 +6,22 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>Synego.Server</RootNamespace>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <!-- Le site React est servi par nginx : l'API ne sert aucun fichier statique -->
+        <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Google.Cloud.Firestore" Version="4.6.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.14"/>
+        <PackageReference Include="Google.Cloud.Storage.V1" Version="5.0.0"/>
+        <PackageReference Include="MailKit" Version="4.18.1"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.14"/>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3"/>
+        <!-- Version corrigée d'une dépendance de MailKit (10.0.0 a des vulnérabilités connues) -->
+        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14"/>
     </ItemGroup>
 
 </Project>

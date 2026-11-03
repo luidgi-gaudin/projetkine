@@ -1,0 +1,92 @@
+# =====================================================================
+#  Synégo : nginx
+#  - Zone publique (80/443) : site, API et back-office (protégé par la connexion et le rôle Coach).
+#    Avec ADMIN_VPN_ONLY=true, /api/admin y devient introuvable (voir 30-synego-admin-guard.sh).
+#  - Zone admin (8081, publiée UNIQUEMENT sur l'IP du VPN WireGuard) : back-office, toujours disponible.
+# =====================================================================
+
+server_tokens off;
+limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+limit_req_status 429;
+
+# ---------- HTTP : défi Let's Encrypt puis redirection HTTPS ----------
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host:${HTTPS_PORT}$request_uri;
+    }
+}
+
+# ---------- HTTPS : zone publique ----------
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name ${DOMAIN};
+
+    ssl_certificate /etc/nginx/certs/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    root /usr/share/nginx/html;
+    client_max_body_size 12m;
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    # Back-office : accessible ici, sauf si ADMIN_VPN_ONLY=true (règle générée au démarrage).
+    include /etc/nginx/conf.d/snippets/admin-guard.conf;
+
+    location /api/ {
+        limit_req zone=api burst=40 nodelay;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        include /etc/nginx/conf.d/snippets/proxy-api.conf;
+        # Écrase toute valeur envoyée par le client : seule la zone admin peut dire "admin".
+        proxy_set_header X-Synego-Zone public;
+    }
+
+    # Fichiers du build Vite : noms versionnés, cache long.
+    location /assets/ {
+        include /etc/nginx/conf.d/snippets/site-headers.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        try_files $uri =404;
+    }
+
+    # Application React (routing côté client).
+    location / {
+        include /etc/nginx/conf.d/snippets/site-headers.conf;
+        add_header Cache-Control "no-cache";
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# ---------- Zone admin : uniquement via le VPN ----------
+# Publiée sur ${ADMIN_BIND_IP}:8443 par compose.yaml. Le trafic est chiffré par WireGuard.
+server {
+    listen 8081;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    client_max_body_size 12m;
+
+    location /api/ {
+        include /etc/nginx/conf.d/snippets/proxy-api.conf;
+        proxy_set_header X-Synego-Zone admin;
+    }
+
+    location / {
+        add_header X-Frame-Options "DENY" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Cache-Control "no-cache";
+        try_files $uri $uri/ /index.html;
+    }
+}

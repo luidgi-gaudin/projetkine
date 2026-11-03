@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Les documents clients ne transitent que par l'API (compte de service, qui ignore ces règles).
+// Le navigateur n'a aucun accès direct au bucket.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

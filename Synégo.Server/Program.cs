@@ -1,128 +1,105 @@
+using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Synego.Server.Authentication;
+using Synego.Server.Booking;
 using Synego.Server.Configuration;
 using Synego.Server.Data;
+using Synego.Server.Documents;
 using Synego.Server.Endpoints;
-using Synego.Server.Firestore;
+using Synego.Server.Notifications;
 using Synego.Server.Security;
 
 // Charge le .env (racine de la solution) avant de lire la configuration.
 DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+bool migrateOnly = args.Contains("--migrate");
 
-// ---------- Base de données ----------
-builder.Services.AddDbContext<AppDbContext>(options =>
-                                                options.UseSqlite(builder.Configuration.GetConnectionString("Default")
-                                                               ?? throw new InvalidOperationException(
-                                                                      "ConnectionStrings:Default manquante.")));
+// ---------- PostgreSQL ----------
+// L'API tourne avec un compte aux droits limités (lecture/écriture des lignes, pas de DDL).
+// Les migrations utilisent le compte propriétaire du schéma, dans un conteneur à part.
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(
+                                                builder.Configuration.GetConnectionString("Default"),
+                                                AppDbContext.ConfigureNpgsql));
 
-// ---------- Firestore ----------
-builder.Services.AddFirestore(builder.Configuration);
+// ---------- Firebase : connexion (Auth) + documents (Storage) ----------
+builder.Services.AddFirebaseAuthentication(builder.Configuration);
 
-// ---------- Authentification (ASP.NET Core Identity + cookie HttpOnly) ----------
-builder.Services.AddAuthorization();
-builder.Services
-    .AddIdentityApiEndpoints<AppUser>(options =>
-    {
-        options.User.RequireUniqueEmail = true;
+var storage = builder.Configuration.GetSection(StorageOptions.Section).Get<StorageOptions>() ?? new StorageOptions();
+builder.Services.AddSingleton(storage);
+builder.Services.AddSingleton<IDocumentStore>(_ => storage.Provider.Equals("Firebase", StringComparison.OrdinalIgnoreCase)
+                                                  ? FirebaseDocumentStore.Create(storage)
+                                                  : new LocalDocumentStore(storage));
+builder.Services.AddScoped<DocumentService>();
+builder.Services.AddHostedService<DocumentPurgeService>();
 
-        options.Password.RequiredLength = 12;
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireNonAlphanumeric = true;
+// ---------- Rendez-vous (Calendly) ----------
+builder.Services.Configure<BookingOptions>(builder.Configuration.GetSection(BookingOptions.Section));
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<CalendlyClient>(http => http.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddScoped<CalendlySettings>();
+builder.Services.AddScoped<AppointmentSync>();
 
-        options.Lockout.AllowedForNewUsers = true;
-        options.Lockout.MaxFailedAccessAttempts = 5;
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+// Chiffre le jeton Calendly en base. Les clés doivent survivre aux redémarrages (volume Docker).
+builder.Services.AddDataProtection()
+    .SetApplicationName("Synego")
+    .PersistKeysToFileSystem(
+        new DirectoryInfo(DotEnv.ResolvePath(builder.Configuration["DataProtection:KeysPath"] ?? "./data/keys")));
 
-        // Passe à true quand un envoi d'e-mail (IEmailSender) sera configuré.
-        options.SignIn.RequireConfirmedEmail = false;
-    })
-    .AddEntityFrameworkStores<AppDbContext>();
+// ---------- Rappels de rendez-vous par e-mail (48 h et 24 h avant) ----------
+builder.Services.AddSingleton(builder.Configuration.GetSection(EmailOptions.Section).Get<EmailOptions>()
+                           ?? new EmailOptions());
+builder.Services.AddSingleton(builder.Configuration.GetSection(ReminderOptions.Section).Get<ReminderOptions>()
+                           ?? new ReminderOptions());
+builder.Services.AddSingleton<EmailSender>();
+builder.Services.AddHostedService<ReminderService>();
 
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Cookie.Name = "__Host-synego";
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.Strict;
-    options.ExpireTimeSpan = TimeSpan.FromHours(8);
-    options.SlidingExpiration = true;
-
-    // API : on renvoie 401/403 au lieu de rediriger vers une page de login.
-    options.Events.OnRedirectToLogin = ctx =>
-    {
-        ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        return Task.CompletedTask;
-    };
-    options.Events.OnRedirectToAccessDenied = ctx =>
-    {
-        ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
-        return Task.CompletedTask;
-    };
-});
-
-// ---------- Data Protection (chiffrement des cookies) ----------
-// Les clés doivent survivre aux redémarrages, sinon tout le monde est déconnecté.
-string? keysPath = builder.Configuration["DataProtection:KeysPath"];
-if (!string.IsNullOrWhiteSpace(keysPath))
-{
-    builder.Services.AddDataProtection()
-        .SetApplicationName("Synego")
-        .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
-}
-
-// ---------- Rate limiting ----------
-builder.Services.AddRateLimiter(options =>
-{
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-    // Global : 100 requêtes / minute / IP
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
-                                                                                   RateLimitPartition
-                                                                                       .GetFixedWindowLimiter(
-                                                                                           ctx.Connection.RemoteIpAddress
-                                                                                               ?.ToString()
-                                                                                        ?? "unknown",
-                                                                                           _ =>
-                                                                                               new
-                                                                                                   FixedWindowRateLimiterOptions
-                                                                                                   {
-                                                                                                       PermitLimit = 100,
-                                                                                                       Window = TimeSpan
-                                                                                                           .FromMinutes(
-                                                                                                               1),
-                                                                                                   }));
-
-    // Auth (login, register, reset…) : 10 requêtes / minute / IP — anti brute-force
-    options.AddPolicy(AuthEndpoints.RateLimitPolicy, ctx =>
-                          RateLimitPartition.GetFixedWindowLimiter(
-                              ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                              _ => new FixedWindowRateLimiterOptions
-                                  { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
-});
-
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
+builder.Services.ConfigureHttpJsonOptions(json => json.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.Configure<FormOptions>(form =>
+                                            form.MultipartBodyLengthLimit = storage.MaxUploadBytes + 64 * 1024);
 
-builder.Services.AddHsts(options =>
+// L'API n'est joignable que par nginx (réseau Docker interne) : on fait confiance à ses en-têtes X-Forwarded-*.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.MaxAge = TimeSpan.FromDays(365);
-    options.IncludeSubDomains = true;
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+builder.Services.AddRateLimiter(limiter =>
+{
+    limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    limiter.AddPolicy(RateLimits.Public, http => RateLimitPartition.GetFixedWindowLimiter(
+                          http.Connection.RemoteIpAddress?.ToString() ?? "inconnu",
+                          _ => new FixedWindowRateLimiterOptions
+                              { PermitLimit = 10, Window = TimeSpan.FromMinutes(10) }));
 });
 
 var app = builder.Build();
 
-// ---------- Pipeline HTTP ----------
-// Applique les migrations EF Core au démarrage (adapté à SQLite / une seule instance).
-using (var scope = app.Services.CreateScope())
+// ---------- Migrations ----------
+// Prod : `dotnet Synégo.Server.dll --migrate` (service « migrate » de compose.yaml), puis arrêt.
+// Dev : appliquées au démarrage si Database:MigrateOnStartup = true.
+if (migrateOnly || app.Configuration.GetValue("Database:MigrateOnStartup", false))
 {
-    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+    string connectionString = app.Configuration.GetConnectionString("Migrations")
+                           ?? app.Configuration.GetConnectionString("Default")!;
+    await using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+                                              .UseNpgsql(connectionString, AppDbContext.ConfigureNpgsql).Options);
+    await db.Database.MigrateAsync();
+    app.Logger.LogInformation("Base de données à jour.");
+    if (migrateOnly) return;
 }
 
+// ---------- Pipeline HTTP ----------
+app.UseForwardedHeaders();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi(); // /openapi/v1.json
@@ -130,30 +107,30 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler();
-    app.UseHsts();
 }
 
 app.UseStatusCodePages();
-app.UseHttpsRedirection();
 app.UseSecurityHeaders();
-
-// En production, le build React (wwwroot) est servi par ce serveur : même origine, pas de CORS.
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
-app.UseRateLimiter();
-app.UseCsrfHeaderCheck();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapHealthEndpoints();
-app.MapAuthEndpoints();
-app.MapFirestoreEndpoints();
+app.MapUserEndpoints();
+app.MapBookingEndpoints();
+app.MapDocumentEndpoints();
+app.MapTicketEndpoints();
+app.MapAdminEndpoints(app.Configuration);
+app.MapCalendlyAdminEndpoints(app.Configuration);
+app.MapCoachEndpoints(app.Configuration);
 
-// Tes futurs endpoints métier : app.MapGroup("/api/xxx").RequireAuthorization()...
-
-// Routes /api inconnues -> 404 JSON ; le reste -> SPA React (routing côté client).
-app.MapFallback("/api/{**path}", () => Results.NotFound());
-app.MapFallbackToFile("index.html");
+// Le site React est servi par nginx : ici, toute route inconnue est une 404 JSON.
+app.MapFallback(() => Results.NotFound());
 
 app.Run();
+
+public static class RateLimits
+{
+    /// <summary>Formulaires publics (contact, devis, confirmation de RDV) : 10 envois / 10 min / IP.</summary>
+    public const string Public = "public";
+}

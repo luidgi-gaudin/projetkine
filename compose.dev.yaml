@@ -1,70 +1,109 @@
-﻿# =====================================================================
-#  Synégo : stack de DÉVELOPPEMENT complète (hot reload)
-#    docker compose -f compose.dev.yaml up --build
-#  Front : https://localhost:5173   API : http://localhost:8080   Émulateur : localhost:8085
+# =====================================================================
+#  Synégo : DÉVELOPPEMENT, tout dans Docker avec rechargement à chaud
+#    ./synego.sh dev up              front + API + PostgreSQL + Adminer
+#    ./synego.sh dev up -d db adminer   seulement la base (API et front lancés depuis Rider)
+#
+#  Front (Vite, HMR)    http://localhost:5173   chaque modification s'affiche aussitôt
+#  API (dotnet watch)   http://localhost:5280   redémarre à chaque modification C#
+#  Adminer              http://localhost:8083   serveur db, base synego, synego_readonly / dev-readonly
+#  Mailpit              http://localhost:8035   tous les e-mails envoyés (rappels de RDV) arrivent ici
+#  PostgreSQL           localhost:5432
+#
+#  Lit le .env de la racine (Firebase, Calendly…). Mots de passe de dev identiques à appsettings.Development.json.
 # =====================================================================
 name: synego-dev
 
 services:
-  # ---------- Front React (Vite + HMR) ----------
+  # ---------- Front React (Vite + rechargement à chaud) ----------
   client:
     image: node:24-slim
     working_dir: /src/Synego.Client
-    command: sh -c "npm install && npx vite --host 0.0.0.0"
+    # npm ci dans le conteneur : les binaires natifs (rolldown…) doivent être ceux de Linux, pas du Mac.
+    command: sh -c "npm ci --no-audit --no-fund && npm run dev -- --host 0.0.0.0"
     environment:
-      API_URL: http://server:8080
+      API_URL: http://api:8080 # le proxy /api de Vite vise le conteneur API
+      SYNEGO_DEV_HTTP: "1" # pas de certificat dans le conteneur : HTTP sur localhost
+      SYNEGO_DEV_POLL: "1" # surveillance des fichiers fiable à travers le montage Docker
     ports:
-      - "5173:5173"
+      - "127.0.0.1:5173:5173"
     volumes:
-      - ./Synego.Client:/src/Synego.Client
-      - client-node-modules:/src/Synego.Client/node_modules # binaires Linux, pas ceux du Mac
-      - ${HOME}/.aspnet/https:/root/.aspnet/https:ro # certificat HTTPS de dev
+      - ./:/src
+      - client-node-modules:/src/Synego.Client/node_modules
     depends_on:
-      - server
+      - api
 
   # ---------- API ASP.NET (dotnet watch) ----------
-  server:
+  api:
     image: mcr.microsoft.com/dotnet/sdk:10.0
     working_dir: /src/Synégo.Server
     command: dotnet watch run --no-launch-profile --non-interactive
-    env_file:
-      - path: .env
-        required: false
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       DOTNET_USE_POLLING_FILE_WATCHER: "1"
-      ConnectionStrings__Default: Data Source=/data/synego.db
-      DataProtection__KeysPath: /data/keys
-      Firestore__CredentialsPath: /run/secrets/firebase-service-account.json
-      # En dev, on utilise l'émulateur (aucune donnée réelle).
-      # Pour viser le vrai projet Firebase, commente la ligne suivante.
-      FIRESTORE_EMULATOR_HOST: firestore-emulator:8085
+      DOTNET_WATCH_RESTART_ON_RUDE_EDIT: "1"
+      # Même base que appsettings.Development.json, mais joignable sous le nom « db »
+      ConnectionStrings__Default: Host=db;Database=synego;Username=synego_app;Password=dev-app;GSS Encryption Mode=Disable
+      ConnectionStrings__Migrations: Host=db;Database=synego;Username=synego_owner;Password=dev-owner;GSS Encryption Mode=Disable
+      Storage__LocalPath: /src/data/documents
+      DataProtection__KeysPath: /src/data/keys
+      # Rappels de RDV : envoyés à Mailpit, vérifiés chaque minute
+      Email__Smtp__Host: mailpit
+      Email__Smtp__Port: "1025"
+      Email__Smtp__Security: None
+      Reminders__IntervalMinutes: "1"
     ports:
-      - "8080:8080"
+      - "127.0.0.1:5280:8080"
     volumes:
-      - .:/src
-      - server-bin:/src/Synégo.Server/bin
-      - server-obj:/src/Synégo.Server/obj
+      - ./:/src
+      # bin/obj propres au conteneur (Linux) : ne se mélangent pas avec ceux de Rider sur le Mac
+      - api-bin:/src/Synégo.Server/bin
+      - api-obj:/src/Synégo.Server/obj
       - nuget-cache:/root/.nuget/packages
-      - server-data:/data
-      - ./secrets:/run/secrets:ro
     depends_on:
-      - firestore-emulator
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
 
-  # ---------- Émulateur Firestore ----------
-  firestore-emulator:
-    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
-    command: >
-      gcloud emulators firestore start
-      --host-port=0.0.0.0:8085
-      --project=${Firestore__ProjectId:-demo-synego}
+  # ---------- Boîte mail de test (aucun e-mail ne sort de la machine) ----------
+  mailpit:
+    image: axllent/mailpit:v1.27
     ports:
-      - "8085:8085"
+      - "127.0.0.1:8035:8025"
+
+  # ---------- PostgreSQL ----------
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: synego
+      POSTGRES_PASSWORD: dev-postgres
+      SYNEGO_OWNER_PASSWORD: dev-owner
+      SYNEGO_APP_PASSWORD: dev-app
+      SYNEGO_BACKUP_PASSWORD: dev-backup
+      SYNEGO_READONLY_PASSWORD: dev-readonly
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d synego" ]
+      interval: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:4.8.1
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - "127.0.0.1:8083:8080"
+    depends_on:
+      - db
 
 volumes:
+  pgdata-dev:
   client-node-modules:
-  server-bin:
-  server-obj:
+  api-bin:
+  api-obj:
   nuget-cache:
-  server-data:

@@ -17,3 +17,16 @@ node_modules/
 !.env.example
 secrets/*
 !secrets/README.md
+
+# Builds et données locales
+Synego.Client/dist/
+Synégo.Server/data/
+backups/
+msbuild.log
+.dotnet/
+.nuget/
+**/.aspnet/
+**/.local/
+
+# Données locales de l API en dev (documents, clés de chiffrement)
+/data/
