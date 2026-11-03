@@ -67,7 +67,7 @@ else
     log "Clonage de $REPO_URL"
     git clone --quiet --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
     # Reprend la configuration existante : ses mots de passe correspondent aux volumes Postgres déjà créés.
-    if [ -n "$previous" ] && [ -f "$previous/.env" ]; then
+    if [ -n "$previous" ] && grep -q '^SYNEGO_APP_PASSWORD=' "$previous/.env" 2>/dev/null; then
         log "Reprise du .env de $previous"
         cp -p "$previous/.env" "$APP_DIR/.env"
     fi
@@ -83,10 +83,14 @@ set_env() {
 }
 PUBLIC_IP=$(curl -4 -fsS --max-time 5 https://ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
 DOMAIN="${DOMAIN:-${PUBLIC_IP//./-}.sslip.io}"
-if [ ! -f .env ]; then
-    log "Création de .env"
-    ./synego.sh init >/dev/null
+if [ -f .env ] && ! grep -q '^SYNEGO_APP_PASSWORD=' .env; then
+    # .env d'une autre application (essai précédent, autre pile) : mis de côté, on repart d'un .env Synégo.
+    aside=".env.precedent-$(date +%Y%m%d-%H%M%S)"
+    log ".env existant étranger à Synégo : renommé en $aside"
+    mv .env "$aside"
 fi
+[ -f .env ] || log "Création de .env"
+./synego.sh init >/dev/null # crée .env ou complète seulement les mots de passe manquants
 set_env DOMAIN "$DOMAIN"
 set_env ADMIN_BIND_IP "${ADMIN_BIND_IP:-127.0.0.1}"
 set_env Firebase__ProjectId "${FIREBASE_PROJECT_ID:-$(grep -oP "projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID \|\| '\K[^']+" Synego.Client/src/auth/firebase.ts || echo synego)}"
@@ -94,6 +98,23 @@ set_env Firebase__ProjectId "${FIREBASE_PROJECT_ID:-$(grep -oP "projectId: impor
 chmod 600 .env
 
 # ---------- 6. Démarrage ----------
+# Ports 80/443 : on arrête (sans rien supprimer) ce qui les occupe en dehors de Synégo.
+services=" $(docker compose config --services | tr '\n' ' ') "
+for id in $(docker ps -q --filter publish=80 --filter publish=443); do
+    project=$(docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$id")
+    service=$(docker inspect -f '{{index .Config.Labels "com.docker.compose.service"}}' "$id")
+    if [ "$project" != "synego" ] || [[ "$services" != *" $service "* ]]; then
+        log "Arrêt du conteneur $(docker inspect -f '{{.Name}}' "$id") qui occupe le port 80/443 (relançable avec docker start)"
+        docker stop "$id" >/dev/null
+    fi
+done
+for unit in nginx apache2 caddy; do
+    if systemctl is-active --quiet "$unit" 2>/dev/null; then
+        log "Arrêt de $unit (installé sur la machine) qui occupe le port 80/443"
+        systemctl disable --now "$unit" >/dev/null 2>&1 || true
+    fi
+done
+
 log "Construction et démarrage (quelques minutes la première fois)"
 docker compose up -d --build
 for _ in $(seq 1 60); do curl -skf https://localhost/api/health >/dev/null && break; sleep 3; done
