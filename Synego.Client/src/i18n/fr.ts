@@ -373,6 +373,8 @@ export const fr = {
         privacy: 'Confidentialité',
         notFoundTitle: 'Cette page a pris un autre rendez-vous.',
         notFoundCta: 'Revenir à l\'accueil',
+        dialogBack: 'Retour',
+        dialogConfirm: 'Confirmer',
     },
 
     auth: {
@@ -494,6 +496,7 @@ export const fr = {
         download: 'Télécharger',
         delete: 'Supprimer',
         confirmDelete: 'Supprimer « {name} » ?',
+        deleted: 'Document supprimé.',
         requestsTitle: 'Vos demandes',
         requestsText: 'Une question sur votre programme, un document, un rendez-vous ? Écrivez ici : la réponse arrive dans ce fil.',
         newRequest: 'Nouvelle demande',

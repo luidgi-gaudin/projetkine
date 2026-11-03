@@ -12,6 +12,7 @@ import {easeOut} from '../../components/motion/ease'
 import {ArrowRight, Calendar, Download, FileIcon, Message, Trash, Upload} from '../../components/ui/Icons'
 import {AddToCalendar} from '../../components/booking/AddToCalendar'
 import {BookingChooser} from '../../components/booking/BookingChooser'
+import {useFeedback} from '../../components/ui/feedback'
 import {useI18n} from '../../i18n/context'
 
 const dateTime: Intl.DateTimeFormatOptions = {
@@ -120,6 +121,7 @@ export function EspaceHomePage() {
 // ---------- Rendez-vous ----------
 /** Tout se gère ici : réserver, déplacer, annuler, rejoindre la visio, ajouter à l'agenda. */
 export function EspaceAppointmentsPage() {
+    const feedback = useFeedback()
     const {t, date, format} = useI18n()
     const [params] = useSearchParams()
     const types = useResource<BookingType[]>('/booking/types')
@@ -127,7 +129,6 @@ export function EspaceAppointmentsPage() {
     const [error, setError] = useState<Error | null>(null)
     const [booking, setBooking] = useState(params.get('reserver') === '1')
     const [rescheduling, setRescheduling] = useState<Appointment | null>(null)
-    const [notice, setNotice] = useState<string | null>(null)
     const panel = useRef<HTMLDivElement>(null)
 
     // Relit aussi chez Calendly les annulations faites depuis ses e-mails.
@@ -142,26 +143,30 @@ export function EspaceAppointmentsPage() {
     }, [load])
 
     const openPanel = (appointment: Appointment | null) => {
-        setNotice(null)
         setRescheduling(appointment)
         setBooking(true)
         setTimeout(() => panel.current?.scrollIntoView({behavior: 'smooth', block: 'start'}), 50)
     }
 
     async function cancel(appointment: Appointment, silent = false) {
-        if (!silent && !confirm(format(t.espace.cancelConfirm, {date: date(appointment.startsAt, dateTime)}))) return
+        if (!silent && !(await feedback.confirm({
+            title: t.espace.cancel,
+            message: format(t.espace.cancelConfirm, {date: date(appointment.startsAt, dateTime)}),
+            confirmLabel: t.espace.cancel,
+            danger: true,
+        }))) return
         try {
             await api(`/booking/${appointment.id}/cancel`, {
                 method: 'POST',
                 body: json({reason: silent ? 'Déplacé depuis l\'espace client' : null}),
             })
-            if (!silent) setNotice(t.espace.canceled)
+            if (!silent) feedback.toast(t.espace.canceled)
         } catch (err) {
             // Calendly non relié : l'API renvoie le lien d'annulation Calendly en secours.
             if (err instanceof ApiError && err.status === 409 && err.message.startsWith('https://')) {
                 window.open(err.message, '_blank', 'noopener')
             } else {
-                setNotice(format(t.espace.actionFailed, {reason: err instanceof Error ? err.message : String(err)}))
+                feedback.toast(format(t.espace.actionFailed, {reason: err instanceof Error ? err.message : String(err)}), 'error')
             }
         } finally {
             load()
@@ -171,7 +176,7 @@ export function EspaceAppointmentsPage() {
     const onConfirmed = async () => {
         if (rescheduling) {
             await cancel(rescheduling, true)
-            setNotice(t.espace.rescheduled)
+            feedback.toast(t.espace.rescheduled)
             setRescheduling(null)
         }
         load()
@@ -250,12 +255,6 @@ export function EspaceAppointmentsPage() {
                 )}
             </AnimatePresence>
 
-            <AnimatePresence>
-                {notice && (
-                    <motion.p className="notice" initial={{opacity: 0, y: -6}} animate={{opacity: 1, y: 0}}
-                              exit={{opacity: 0}}>{notice}</motion.p>
-                )}
-            </AnimatePresence>
 
             <ErrorNotice error={error}/>
             {!list && !error && <DialLoader/>}
@@ -278,6 +277,7 @@ export function EspaceAppointmentsPage() {
 
 // ---------- Documents ----------
 export function EspaceDocumentsPage() {
+    const feedback = useFeedback()
     const {t, format, date} = useI18n()
     const {data, error, reload} = useResource<DocumentItem[]>('/documents')
     const input = useRef<HTMLInputElement>(null)
@@ -301,8 +301,12 @@ export function EspaceDocumentsPage() {
     }
 
     async function remove(doc: DocumentItem) {
-        if (!confirm(format(t.espace.confirmDelete, {name: doc.fileName}))) return
+        if (!(await feedback.confirm({
+            title: t.espace.delete, message: format(t.espace.confirmDelete, {name: doc.fileName}),
+            confirmLabel: t.espace.delete, danger: true,
+        }))) return
         await api(`/documents/${doc.id}`, {method: 'DELETE'})
+        feedback.toast(t.espace.deleted)
         reload()
     }
 

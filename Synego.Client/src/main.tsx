@@ -4,6 +4,7 @@ import {BrowserRouter} from 'react-router'
 import {MotionConfig} from 'motion/react'
 import App from './App.tsx'
 import {AuthProvider} from './auth/AuthProvider.tsx'
+import {FeedbackProvider} from './components/ui/FeedbackProvider.tsx'
 import {I18nProvider} from './i18n/I18nProvider.tsx'
 import {ThemeProvider} from './theme/ThemeProvider.tsx'
 import {applyTheme, readPreference, resolveTheme} from './theme/theme'
@@ -24,9 +25,11 @@ createRoot(document.getElementById('root')!).render(
             <BrowserRouter>
                 <ThemeProvider>
                     <I18nProvider>
-                        <AuthProvider>
-                            <App/>
-                        </AuthProvider>
+                        <FeedbackProvider>
+                            <AuthProvider>
+                                <App/>
+                            </AuthProvider>
+                        </FeedbackProvider>
                     </I18nProvider>
                 </ThemeProvider>
             </BrowserRouter>

@@ -703,3 +703,74 @@ input:focus, textarea:focus, select:focus {
         grid-template-columns: 1fr;
     }
 }
+
+/* ---------- Dialogues & notifications (à la place des fenêtres natives) ---------- */
+.dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    display: grid;
+    place-items: center;
+    padding: var(--gutter);
+    background: rgb(10 29 53 / 0.45);
+    backdrop-filter: blur(6px);
+}
+
+.dialog {
+    display: grid;
+    gap: 1rem;
+    width: min(460px, 100%);
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    box-shadow: 0 30px 80px -20px rgb(10 29 53 / 0.45);
+}
+
+.dialog.is-danger {
+    border-top: 3px solid var(--danger);
+}
+
+.dialog-message {
+    color: var(--text-soft);
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1.2rem;
+    margin-top: 0.4rem;
+}
+
+.toasts {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 160;
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    width: min(92vw, 520px);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem 1.2rem;
+    border-radius: 999px;
+    background: var(--band-bg);
+    color: var(--band-fg);
+    font-size: 0.92rem;
+    font-weight: 600;
+    box-shadow: 0 16px 40px -16px rgb(10 29 53 / 0.5);
+    pointer-events: auto;
+}
+
+.toast-error {
+    background: var(--danger);
+    color: #fff;
+}

@@ -1071,3 +1071,108 @@ a.chip {
 .row-actions .btn {
     color: var(--btn-fg);
 }
+
+/* ---------- Coach : « Aujourd'hui » ---------- */
+.space-nav-badge {
+    margin-left: auto;
+    min-width: 22px;
+    padding: 0.1em 0.5em;
+    border-radius: 999px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.kpi {
+    display: grid;
+    gap: 0.2rem;
+    padding: 20px 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    text-decoration: none;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s;
+}
+
+.kpi:hover {
+    transform: translateY(-3px);
+    border-color: var(--line-strong);
+}
+
+.kpi.is-hot {
+    border-color: color-mix(in oklab, var(--danger) 45%, transparent);
+}
+
+.kpi-value {
+    font-family: var(--serif);
+    font-size: 2.6rem;
+    font-weight: 320;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.kpi.is-hot .kpi-value {
+    color: var(--danger);
+}
+
+.kpi-label {
+    font-size: 0.82rem;
+    color: var(--text-soft);
+}
+
+.today-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+    gap: 20px;
+    align-items: start;
+}
+
+.card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+}
+
+.agenda {
+    display: grid;
+    gap: 6px;
+    list-style: none;
+}
+
+.agenda-day {
+    margin: 0.8rem 0 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+}
+
+.agenda-day::first-letter {
+    text-transform: uppercase;
+}
+
+.agenda-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+}
+
+.agenda-time {
+    min-width: 54px;
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    font-variant-numeric: tabular-nums;
+}

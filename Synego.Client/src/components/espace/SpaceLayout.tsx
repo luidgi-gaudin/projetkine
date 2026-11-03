@@ -1,16 +1,16 @@
-import type {ComponentType} from 'react'
+import {type ComponentType, Suspense} from 'react'
 import {Link, NavLink, useLocation, useNavigate, useOutlet} from 'react-router'
 import {AnimatePresence, motion} from 'motion/react'
 import {displayNameOf, useAuth} from '../../auth/AuthContext'
 import {brand} from '../../i18n/brand'
 import {useI18n} from '../../i18n/context'
-import {LogoMark} from '../brand/Dial'
+import {DialLoader, LogoMark} from '../brand/Dial'
 import {easeOut} from '../motion/ease'
 import type {IconProps} from '../ui/Icons'
 import {ArrowUpRight, Logout} from '../ui/Icons'
 import {LocaleSwitch, ThemeToggle} from '../ui/Switches'
 
-export type SpaceNavItem = { to: string, label: string, icon: ComponentType<IconProps>, end?: boolean }
+export type SpaceNavItem = { to: string, label: string, icon: ComponentType<IconProps>, end?: boolean, badge?: number }
 
 /** Coque commune à l'espace client et au back-office : navigation latérale, contenu animé. */
 export function SpaceLayout({nav, badge}: { nav: SpaceNavItem[], badge?: string }) {
@@ -29,13 +29,14 @@ export function SpaceLayout({nav, badge}: { nav: SpaceNavItem[], badge?: string 
                     {badge && <span className="space-badge">{badge}</span>}
                 </Link>
                 <nav className="space-nav">
-                    {nav.map(({to, label, icon: Icon, end}) => (
+                    {nav.map(({to, label, icon: Icon, end, badge}) => (
                         <NavLink key={to} to={to} end={end} className="space-nav-link">
                             {({isActive}) => (
                                 <>
                                     {isActive && <motion.span layoutId="space-nav-active" className="space-nav-active"
                                                               transition={{duration: 0.5, ease: easeOut}}/>}
                                     <Icon/> <span>{label}</span>
+                                    {!!badge && <span className="space-nav-badge" aria-label={`${badge} à traiter`}>{badge}</span>}
                                 </>
                             )}
                         </NavLink>
@@ -66,7 +67,7 @@ export function SpaceLayout({nav, badge}: { nav: SpaceNavItem[], badge?: string 
                 <motion.main key={location.pathname} className="space-main"
                              initial={{opacity: 0, y: 16}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, y: -8}}
                              transition={{duration: 0.45, ease: easeOut}}>
-                    {outlet}
+                    <Suspense fallback={<DialLoader/>}>{outlet}</Suspense>
                 </motion.main>
             </AnimatePresence>
         </div>

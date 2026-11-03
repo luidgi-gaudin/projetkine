@@ -1,5 +1,5 @@
 import {type FormEvent, useRef, useState} from 'react'
-import {Link, useParams} from 'react-router'
+import {Link, useParams, useSearchParams} from 'react-router'
 import {AnimatePresence, motion} from 'motion/react'
 import {api, ApiError, download, json, upload} from '../../api/client'
 import {
@@ -17,11 +17,13 @@ import {
     type UserRole,
 } from '../../api/types'
 import {useResource} from '../../api/useResource'
+import {useAuth} from '../../auth/AuthContext'
 import {DialLoader} from '../../components/brand/Dial'
 import {formatSize} from '../../components/espace/format'
 import {SpaceHeader, StaggerList} from '../../components/espace/SpaceLayout'
 import {easeOut} from '../../components/motion/ease'
 import {ArrowRight, Close, Download, Trash, Upload} from '../../components/ui/Icons'
+import {useFeedback} from '../../components/ui/feedback'
 import {TicketThread} from '../espace/EspacePages'
 
 /*
@@ -47,6 +49,7 @@ function AdminError({error}: { error: Error | null }) {
 
 // ---------- Clients ----------
 function DocumentsPanel({client}: { client: AdminClient }) {
+    const feedback = useFeedback()
     const {data, reload} = useResource<DocumentItem[]>(`/admin/clients/${client.id}/documents`)
     const categories = useResource<string[]>('/admin/document-categories')
     const [category, setCategory] = useState('Programme')
@@ -97,8 +100,13 @@ function DocumentsPanel({client}: { client: AdminClient }) {
                                     <Download/>
                                 </button>
                                 <button type="button" className="icon-button" title="Supprimer" onClick={async () => {
-                                    if (!confirm(`Supprimer « ${doc.fileName} » ? Il restera récupérable 30 jours par restauration.`)) return
+                                    if (!(await feedback.confirm({
+                                        title: `Supprimer « ${doc.fileName} » ?`,
+                                        message: 'Le client ne le verra plus. Il reste récupérable 30 jours par restauration de sauvegarde.',
+                                        confirmLabel: 'Supprimer', danger: true,
+                                    }))) return
                                     await api(`/admin/documents/${doc.id}`, {method: 'DELETE'})
+                                    feedback.toast('Document supprimé.')
                                     reload()
                                 }}>
                                     <Trash/>
@@ -114,6 +122,7 @@ function DocumentsPanel({client}: { client: AdminClient }) {
 
 /** Notes privées du coach : observations, objectifs, points à revoir. Jamais visibles par le client. */
 function NotesPanel({client}: { client: AdminClient }) {
+    const feedback = useFeedback()
     const {data, reload} = useResource<ClientNote[]>(`/admin/clients/${client.id}/notes`)
     const [body, setBody] = useState('')
     const [pinned, setPinned] = useState(false)
@@ -176,8 +185,12 @@ function NotesPanel({client}: { client: AdminClient }) {
                                     </button>
                                     <button type="button" className="icon-button" title="Supprimer la note"
                                             onClick={async () => {
-                                                if (!confirm('Supprimer cette note ?')) return
+                                                if (!(await feedback.confirm({
+                                                    title: 'Supprimer cette note ?', message: 'Cette action est définitive.',
+                                                    confirmLabel: 'Supprimer', danger: true,
+                                                }))) return
                                                 await api(`/admin/notes/${note.id}`, {method: 'DELETE'})
+                                                feedback.toast('Note supprimée.')
                                                 reload()
                                             }}>
                                         <Trash size={16}/>
@@ -235,14 +248,20 @@ function ClientDrawer({client, onClose}: { client: AdminClient, onClose: () => v
 }
 
 export function AdminClientsPage() {
+    const feedback = useFeedback()
     const {data, error, reload} = useResource<AdminClient[]>('/admin/clients')
     const [selected, setSelected] = useState<AdminClient | null>(null)
     const [filter, setFilter] = useState<UserRole | 'all'>('all')
     const rows = data?.filter((c) => filter === 'all' || c.role === filter) ?? []
 
     async function setRole(client: AdminClient, role: UserRole) {
-        if (role === 'Coach' && !confirm(`Nommer ${client.displayName ?? client.email} coach ? Ce compte aura accès à tout le back-office.`)) return
+        if (role === 'Coach' && !(await feedback.confirm({
+            title: `Nommer ${client.displayName ?? client.email} coach ?`,
+            message: 'Ce compte aura accès à tout le back-office : clients, notes, rendez-vous, demandes et Calendly.',
+            confirmLabel: 'Nommer coach',
+        }))) return
         await api(`/admin/clients/${client.id}`, {method: 'PATCH', body: json({role})})
+        feedback.toast(role === 'Client' ? 'Client signé : les séances de suivi lui sont ouvertes.' : 'Statut mis à jour.')
         reload()
     }
 
@@ -325,12 +344,34 @@ export function AdminClientsPage() {
 
 // ---------- Rendez-vous ----------
 export function AdminAppointmentsPage() {
-    const [scope, setScope] = useState<'upcoming' | 'past' | 'all'>('upcoming')
+    const feedback = useFeedback()
+    const [params] = useSearchParams()
+    const [scope, setScope] = useState<'upcoming' | 'past' | 'all'>(params.get('scope') === 'all' ? 'all' : 'upcoming')
     const {data, error, reload} = useResource<AdminAppointment[]>(`/admin/appointments?scope=${scope}`)
 
     async function update(a: AdminAppointment, body: Partial<{ status: AppointmentStatus, clearReview: boolean }>) {
         await api(`/admin/appointments/${a.id}`, {method: 'PATCH', body: json(body)})
         reload()
+    }
+
+    // Annulation chez Calendly : la personne reçoit l'e-mail d'annulation, sans limite de délai pour le coach.
+    async function cancel(a: AdminAppointment) {
+        const reason = await feedback.ask({
+            title: `Annuler « ${a.title} » avec ${a.name ?? a.email} ?`,
+            message: 'Calendly prévient la personne par e-mail, avec votre motif.',
+            label: 'Motif transmis à la personne',
+            defaultValue: 'Empêchement de dernière minute, nous vous proposons un autre créneau.',
+            confirmLabel: 'Annuler le rendez-vous', danger: true,
+        })
+        if (reason === null) return
+        try {
+            await api(`/admin/appointments/${a.id}/cancel`, {method: 'POST', body: json({reason})})
+            feedback.toast('Rendez-vous annulé, la personne est prévenue.')
+        } catch (err) {
+            feedback.toast(err instanceof ApiError ? err.message : String(err), 'error')
+        } finally {
+            reload()
+        }
     }
 
     return (
@@ -374,6 +415,9 @@ export function AdminAppointmentsPage() {
                                     </span>
                                 )}
                             </div>
+                            {a.status === 'Scheduled' && new Date(a.startsAt) > new Date() && (
+                                <button type="button" className="link-quiet" onClick={() => void cancel(a)}>Annuler</button>
+                            )}
                             <select value={a.status}
                                     onChange={(e) => void update(a, {status: e.target.value as AppointmentStatus})}>
                                 {Object.entries(appointmentStatusLabels).map(([value, label]) => (
@@ -471,6 +515,7 @@ type CoachesData = {
 
 /** Les coachs nomment d'autres coachs : compte existant promu, ou invitation par e-mail. */
 export function AdminCoachesPage() {
+    const feedback = useFeedback()
     const {data, error, reload} = useResource<CoachesData>('/admin/coaches')
     const [email, setEmail] = useState('')
     const [result, setResult] = useState<string | null>(null)
@@ -530,8 +575,12 @@ export function AdminCoachesPage() {
                                 </div>
                                 {!coach.isYou && (
                                     <button type="button" className="link-quiet" onClick={async () => {
-                                        if (!confirm(`Retirer les droits de coach à ${coach.displayName ?? coach.email} ? Le compte redeviendra client.`)) return
+                                        if (!(await feedback.confirm({
+                                            title: `Retirer les droits de coach à ${coach.displayName ?? coach.email} ?`,
+                                            message: 'Le compte redeviendra client.', confirmLabel: 'Retirer', danger: true,
+                                        }))) return
                                         await api(`/admin/coaches/${coach.id}`, {method: 'DELETE'})
+                                        feedback.toast('Droits de coach retirés.')
                                         reload()
                                     }}>Retirer</button>
                                 )}
@@ -558,6 +607,120 @@ export function AdminCoachesPage() {
                             </StaggerList>
                         </>
                     )}
+                </>
+            )}
+        </>
+    )
+}
+
+// ---------- Aujourd'hui ----------
+export type Overview = {
+    upcoming: {
+        id: string, typeKey: string, title: string, startsAt: string, endsAt: string,
+        name: string | null, meetingUrl: string | null, reviewReason: string | null
+    }[]
+    next24h: number
+    tickets: AdminTicketRow[]
+    newTickets: number
+    openTickets: number
+    alerts: number
+    newAccounts: number
+    signedClients: number
+}
+
+const time = (iso: string) => new Intl.DateTimeFormat('fr-FR', {hour: '2-digit', minute: '2-digit'}).format(new Date(iso))
+const dayLabel = (iso: string) => {
+    const d = new Date(iso)
+    const today = new Date()
+    const tomorrow = new Date(Date.now() + 86_400_000)
+    if (d.toDateString() === today.toDateString()) return 'Aujourd\'hui'
+    if (d.toDateString() === tomorrow.toDateString()) return 'Demain'
+    return new Intl.DateTimeFormat('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'}).format(d)
+}
+
+/** Page d'accueil du coach : la journée en un coup d'œil, et ce qui attend une action. */
+export function AdminTodayPage() {
+    const {user, profile} = useAuth()
+    const {data, error} = useResource<Overview>('/admin/overview')
+    const firstName = (profile?.displayName ?? user?.name ?? '').split(' ')[0]
+    const today = new Intl.DateTimeFormat('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'}).format(new Date())
+
+    const kpis = data ? [
+        {label: 'RDV dans les 24 h', value: data.next24h, to: '/admin/rendez-vous'},
+        {label: 'Demandes nouvelles', value: data.newTickets, to: '/admin/demandes', hot: data.newTickets > 0},
+        {label: 'Alertes rendez-vous', value: data.alerts, to: '/admin/rendez-vous?scope=all', hot: data.alerts > 0},
+        {label: 'Nouveaux comptes (7 j)', value: data.newAccounts, to: '/admin/clients'},
+    ] : []
+
+    return (
+        <>
+            <SpaceHeader title={firstName ? `Bonjour ${firstName}.` : 'Bonjour.'}
+                         text={`${today.charAt(0).toUpperCase()}${today.slice(1)} · ${data ? `${data.signedClients} client${data.signedClients > 1 ? 's' : ''} accompagné${data.signedClients > 1 ? 's' : ''}` : ''}`}/>
+            <AdminError error={error}/>
+            {!data && !error && <DialLoader/>}
+            {data && (
+                <>
+                    <div className="kpis">
+                        {kpis.map((k, i) => (
+                            <motion.div key={k.label} initial={{opacity: 0, y: 14}} animate={{opacity: 1, y: 0}}
+                                        transition={{delay: i * 0.06, duration: 0.5, ease: easeOut}}>
+                                <Link to={k.to} className={`kpi${k.hot ? ' is-hot' : ''}`}>
+                                    <span className="kpi-value">{k.value}</span>
+                                    <span className="kpi-label">{k.label}</span>
+                                </Link>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <div className="today-grid">
+                        <section className="card">
+                            <header className="card-head">
+                                <h2 className="h3">Prochains rendez-vous</h2>
+                                <Link to="/admin/rendez-vous" className="link-arrow">Tout voir <ArrowRight/></Link>
+                            </header>
+                            {data.upcoming.length === 0 && <p className="tile-empty">Rien de prévu cette semaine.</p>}
+                            <ol className="agenda">
+                                {data.upcoming.map((a, i) => (
+                                    <li key={a.id}>
+                                        {(i === 0 || dayLabel(a.startsAt) !== dayLabel(data.upcoming[i - 1].startsAt)) && (
+                                            <p className="agenda-day">{dayLabel(a.startsAt)}</p>
+                                        )}
+                                        <div className="agenda-row">
+                                            <span className="agenda-time">{time(a.startsAt)}</span>
+                                            <div className="row-main">
+                                                <span className="row-title">{a.title}</span>
+                                                <span className="row-meta">{a.name}</span>
+                                                {a.reviewReason && <span className="row-warning">{a.reviewReason}</span>}
+                                            </div>
+                                            {a.meetingUrl && (
+                                                <a className="btn btn-ink btn-small" href={a.meetingUrl} target="_blank"
+                                                   rel="noreferrer">Meet</a>
+                                            )}
+                                        </div>
+                                    </li>
+                                ))}
+                            </ol>
+                        </section>
+
+                        <section className="card">
+                            <header className="card-head">
+                                <h2 className="h3">Demandes à traiter</h2>
+                                <Link to="/admin/demandes" className="link-arrow">Tout voir <ArrowRight/></Link>
+                            </header>
+                            {data.tickets.length === 0 && <p className="tile-empty">Tout est à jour.</p>}
+                            <StaggerList className="rows">
+                                {data.tickets.map((ticket) => (
+                                    <Link to={`/admin/demandes/${ticket.id}`} className="row row-link" key={ticket.id}>
+                                        <div className="row-main">
+                                            <span className="row-title">{ticket.subject}</span>
+                                            <span className="row-meta">{categoryLabels[ticket.category]} · {ticket.contactName}</span>
+                                        </div>
+                                        <span className={`chip chip-${ticket.status}`}>{statusLabels[ticket.status]}</span>
+                                    </Link>
+                                ))}
+                            </StaggerList>
+                        </section>
+                    </div>
                 </>
             )}
         </>

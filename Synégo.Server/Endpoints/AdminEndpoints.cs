@@ -19,6 +19,42 @@ public static class AdminEndpoints
             .RequireAuthorization(Policies.Admin)
             .RequireAdminZone(configuration);
 
+        // ---------- Aujourd'hui : la journée du coach en un coup d'œil ----------
+        group.MapGet("/overview", async (AppDbContext db, TimeProvider clock, CancellationToken ct) =>
+        {
+            DateTimeOffset now = clock.GetUtcNow();
+            DateTimeOffset week = now.AddDays(7);
+            DateTimeOffset lastWeek = now.AddDays(-7);
+
+            List<OverviewAppointmentDto> upcoming = await db.Appointments
+                .Where(a => a.Status == AppointmentStatus.Scheduled && a.StartsAt >= now.AddMinutes(-60) && a.StartsAt < week)
+                .OrderBy(a => a.StartsAt)
+                .Take(8)
+                .Select(a => new OverviewAppointmentDto(
+                            a.Id, a.TypeKey, a.Title, a.StartsAt, a.EndsAt,
+                            a.InviteeName ?? (a.User != null ? a.User.DisplayName : null) ?? a.InviteeEmail,
+                            a.MeetingUrl, a.ReviewReason))
+                .ToListAsync(ct);
+
+            List<AdminTicketRowDto> tickets = await db.Tickets
+                .Where(t => t.Status != TicketStatus.Closed)
+                .OrderBy(t => t.Status).ThenByDescending(t => t.UpdatedAt)
+                .Take(5)
+                .Select(t => new AdminTicketRowDto(t.Id, t.Subject, t.Category, t.Status, t.ContactName, t.ContactEmail,
+                                                   t.Company, t.CreatedAt, t.UpdatedAt, t.Messages.Count))
+                .ToListAsync(ct);
+
+            return new OverviewDto(
+                upcoming,
+                await db.Appointments.CountAsync(a => a.Status == AppointmentStatus.Scheduled && a.StartsAt >= now && a.StartsAt < now.AddHours(24), ct),
+                tickets,
+                await db.Tickets.CountAsync(t => t.Status == TicketStatus.Open, ct),
+                await db.Tickets.CountAsync(t => t.Status != TicketStatus.Closed, ct),
+                await db.Appointments.CountAsync(a => a.ReviewReason != null && a.StartsAt >= lastWeek, ct),
+                await db.Users.CountAsync(u => u.CreatedAt >= lastWeek, ct),
+                await db.Users.CountAsync(u => u.Role == UserRole.Client, ct));
+        });
+
         // ---------- Clients ----------
         group.MapGet("/clients", async (AppDbContext db, TimeProvider clock, CancellationToken ct) =>
         {
@@ -251,6 +287,26 @@ public static class AdminEndpoints
     }
 
     public sealed record ClientUpdate(UserRole? Role, string? Company);
+
+    public sealed record OverviewAppointmentDto(
+        Guid Id,
+        string TypeKey,
+        string Title,
+        DateTimeOffset StartsAt,
+        DateTimeOffset EndsAt,
+        string? Name,
+        string? MeetingUrl,
+        string? ReviewReason);
+
+    public sealed record OverviewDto(
+        List<OverviewAppointmentDto> Upcoming,
+        int Next24h,
+        List<AdminTicketRowDto> Tickets,
+        int NewTickets,
+        int OpenTickets,
+        int Alerts,
+        int NewAccounts,
+        int SignedClients);
 
     public sealed record NoteRequest(string? Body, bool? Pinned);
 

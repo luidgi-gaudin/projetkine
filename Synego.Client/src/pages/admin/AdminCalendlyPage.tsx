@@ -5,6 +5,7 @@ import type {CalendlyStatus} from '../../api/types'
 import {useResource} from '../../api/useResource'
 import {DialLoader} from '../../components/brand/Dial'
 import {SpaceHeader} from '../../components/espace/SpaceLayout'
+import {useFeedback} from '../../components/ui/feedback'
 import {easeOut} from '../../components/motion/ease'
 import {ArrowUpRight, Check, LinkIcon, Refresh} from '../../components/ui/Icons'
 
@@ -100,6 +101,7 @@ function Connected({status, onChange, onDisconnect}: {
     onChange: (s: CalendlyStatus) => void
     onDisconnect: () => void
 }) {
+    const feedback = useFeedback()
     const [choices, setChoices] = useState(() =>
         Object.fromEntries(status.types.map((t) => [t.key, {eventTypeUri: t.eventTypeUri ?? '', enabled: t.enabled}])))
     const [saving, setSaving] = useState(false)
@@ -137,7 +139,11 @@ function Connected({status, onChange, onDisconnect}: {
     }
 
     async function disconnect() {
-        if (!confirm('Délier votre compte Calendly ? Le site affichera les liens par défaut.')) return
+        if (!(await feedback.confirm({
+            title: 'Délier votre compte Calendly ?',
+            message: 'Le site affichera les liens par défaut, et la synchronisation s\'arrêtera.',
+            confirmLabel: 'Délier', danger: true,
+        }))) return
         await api('/admin/calendly', {method: 'DELETE'})
         onDisconnect()
     }

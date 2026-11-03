@@ -365,6 +365,8 @@ export const en: Dictionary = {
         privacy: 'Privacy',
         notFoundTitle: 'This page has another appointment.',
         notFoundCta: 'Back to home',
+        dialogBack: 'Back',
+        dialogConfirm: 'Confirm',
     },
 
     auth: {
@@ -486,6 +488,7 @@ export const en: Dictionary = {
         download: 'Download',
         delete: 'Delete',
         confirmDelete: 'Delete “{name}”?',
+        deleted: 'Document deleted.',
         requestsTitle: 'Your requests',
         requestsText: 'A question about your programme, a document, an appointment? Write here: the answer will appear in this thread.',
         newRequest: 'New request',
