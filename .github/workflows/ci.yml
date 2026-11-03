@@ -50,7 +50,7 @@ jobs:
       - name: Migrations à jour avec le modèle
         run: |
           dotnet tool restore
-          dotnet ef migrations has-pending-model-changes --project "Synégo.Server" -c Release --no-build
+          dotnet ef migrations has-pending-model-changes --project "Synégo.Server" --configuration Release --no-build
 
       - name: Aucun paquet NuGet vulnérable
         run: |
