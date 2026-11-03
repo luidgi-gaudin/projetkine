@@ -58,6 +58,8 @@ export default defineConfig(({command}) => {
             // Le build (dist/) est servi par nginx en production, qui proxifie /api vers l'API .NET.
             outDir: 'dist',
             emptyOutDir: true,
+            // Jamais de police en data: (petits sous-ensembles < 4 Ko) : la CSP n'autorise que font-src 'self'.
+            assetsInlineLimit: (file) => (/\.woff2?$/.test(file) ? false : undefined),
         },
     }
 })
