@@ -14,7 +14,7 @@ import {
     signOut,
     updateProfile,
     type User as FirebaseUser,
-} from 'firebase/auth'
+} from '@firebase/auth'
 import {api, json, setAuthTokenProvider} from '../api/client'
 import type {Profile} from '../api/types'
 import {firebaseAuth} from './firebase'

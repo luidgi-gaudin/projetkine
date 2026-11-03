@@ -1,5 +1,5 @@
-import {getApp, getApps, initializeApp} from 'firebase/app'
-import {getAuth} from 'firebase/auth'
+import {getApp, getApps, initializeApp} from '@firebase/app'
+import {getAuth} from '@firebase/auth'
 
 const config = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyBV6wb5qBhnzDhXvyaK_2XoIjovMNx6hnk',
