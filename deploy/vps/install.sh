@@ -12,6 +12,7 @@
 #    LETSENCRYPT_EMAIL   e-mail pour les avis d'expiration Let's Encrypt
 #    FIREBASE_PROJECT_ID projet Firebase (défaut : celui du dépôt)
 #    EXTRA_DOMAINS       autres noms du serveur à inclure dans le certificat (ex. synego.duckdns.org)
+#    FIREBASE_API_KEY    clé web Firebase, écrite dans .env (VITE_FIREBASE_API_KEY) : jamais dans le code
 # =====================================================================
 set -euo pipefail
 
@@ -96,6 +97,8 @@ set_env DOMAIN "$DOMAIN"
 set_env ADMIN_BIND_IP "${ADMIN_BIND_IP:-127.0.0.1}"
 set_env Firebase__ProjectId "${FIREBASE_PROJECT_ID:-$(grep -oP "projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID \|\| '\K[^']+" Synego.Client/src/auth/firebase.ts || echo synego)}"
 [ -n "${ADMIN_EMAILS:-}" ] && set_env Admin__Emails "$ADMIN_EMAILS"
+[ -n "${FIREBASE_API_KEY:-}" ] && set_env VITE_FIREBASE_API_KEY "$FIREBASE_API_KEY"
+grep -q '^VITE_FIREBASE_API_KEY=.' .env || log "ATTENTION : VITE_FIREBASE_API_KEY vide dans .env : le site marche, mais pas la connexion."
 chmod 600 .env
 
 # ---------- Supervision Zabbix déjà présente (équipe Réseau) : gardée accessible sur :8443 ----------

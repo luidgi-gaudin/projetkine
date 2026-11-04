@@ -1,8 +1,16 @@
 import {getApp, getApps, initializeApp} from '@firebase/app'
 import {getAuth} from '@firebase/auth'
 
+// La clé web n'est JAMAIS écrite dans le code : elle vient uniquement du .env (VITE_FIREBASE_API_KEY),
+// lu par Vite en développement et passé au build Docker en production.
+const apiKey = import.meta.env.VITE_FIREBASE_API_KEY
+if (!apiKey) {
+    console.error('[synego] VITE_FIREBASE_API_KEY manquante dans .env : le site s\'affiche, mais la connexion est indisponible.')
+}
+
 const config = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyBV6wb5qBhnzDhXvyaK_2XoIjovMNx6hnk',
+    // Sans clé, une valeur factice évite de bloquer tout le site : seules les connexions échouent, avec un message clair.
+    apiKey: apiKey || 'cle-absente-voir-env',
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'synego-b3b86.firebaseapp.com',
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'synego-b3b86',
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'synego-b3b86.firebasestorage.app',

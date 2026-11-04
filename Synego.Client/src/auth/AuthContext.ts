@@ -60,7 +60,9 @@ export function authErrorMessage(err: unknown, errors: Record<string, string>): 
     const alias: Record<string, string> = {
         'auth/user-not-found': 'auth/invalid-credential',
         'auth/wrong-password': 'auth/invalid-credential',
-        'auth/cancelled-popup-request': 'auth/popup-closed-by-user'
+        'auth/cancelled-popup-request': 'auth/popup-closed-by-user',
+        'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'auth/invalid-api-key',
+        'auth/api-key-expired.-please-renew-the-api-key.': 'auth/invalid-api-key'
     }
     const message = errors[alias[code] ?? code]
     if (message) return message

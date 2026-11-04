@@ -435,6 +435,7 @@ export const fr = {
             'auth/popup-closed-by-user': 'Fenêtre Google fermée avant la fin de la connexion.',
             'auth/popup-blocked': 'Le navigateur a bloqué la fenêtre Google. Autorisez les fenêtres pour ce site.',
             'auth/requires-recent-login': 'Par sécurité, reconnectez-vous puis recommencez.',
+            'auth/invalid-api-key': 'La connexion est momentanément indisponible (configuration du site). Réessayez plus tard ou écrivez-nous.',
             generic: 'La connexion a échoué ({code}). Réessayez.',
         } as Record<string, string>,
     },

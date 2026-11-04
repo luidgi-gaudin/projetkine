@@ -180,8 +180,12 @@ git clone https://github.com/luidgi-gaudin/projetkine.git /opt/synego
 ```
 
 ```bash
-ADMIN_EMAILS=luidgi.gaudin+coach@gmail.com bash /opt/synego/deploy/vps/install.sh
+ADMIN_EMAILS=luidgi.gaudin+coach@gmail.com FIREBASE_API_KEY=<clé web Firebase> bash /opt/synego/deploy/vps/install.sh
 ```
+
+> La clé web Firebase n'est écrite nulle part dans le dépôt : elle vit uniquement dans `.env`
+> (`VITE_FIREBASE_API_KEY`), en local comme sur le serveur. Elle est restreinte dans Google Cloud aux
+> domaines du site et aux seules API de connexion (Identity Toolkit, Token Service).
 
 Le script installe Docker, le pare-feu, génère les mots de passe, démarre la stack, obtient le certificat HTTPS
 (adresse `<ip>.sslip.io` par défaut, ou `DOMAIN=…`) et active le déploiement automatique.

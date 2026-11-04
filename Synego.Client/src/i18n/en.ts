@@ -427,6 +427,7 @@ export const en: Dictionary = {
             'auth/popup-closed-by-user': 'The Google window was closed before signing in.',
             'auth/popup-blocked': 'The browser blocked the Google window. Allow pop-ups for this site.',
             'auth/requires-recent-login': 'For security, please sign in again and retry.',
+            'auth/invalid-api-key': 'Sign-in is temporarily unavailable (site configuration). Please try again later or write to us.',
             generic: 'Sign-in failed ({code}). Please try again.',
         },
     },
