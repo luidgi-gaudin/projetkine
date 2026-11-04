@@ -1,0 +1,740 @@
+/* =====================================================================
+   Formations, communauté et paiements
+   ===================================================================== */
+
+/* ---------- Catalogue ---------- */
+.courses {
+    max-width: calc(var(--max) + var(--gutter) * 2);
+    margin-inline: auto;
+    padding-block: clamp(40px, 6vw, 80px) clamp(80px, 10vw, 140px);
+}
+
+.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: clamp(18px, 2.4vw, 28px);
+}
+
+.course-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.4s;
+}
+
+.course-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--line-strong);
+}
+
+.course-card-body {
+    display: grid;
+    gap: 0.7rem;
+    padding: 24px 26px 28px;
+}
+
+.course-card-body p {
+    color: var(--text-soft);
+}
+
+.course-card-meta {
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+}
+
+.course-price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 0.8rem;
+    margin-top: 0.3rem;
+}
+
+.course-price strong {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    font-weight: 420;
+    color: var(--text);
+}
+
+.course-price span {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+}
+
+.course-price-big strong {
+    font-size: 2.4rem;
+}
+
+/* Couverture générée : cadran de la marque, trois ambiances. */
+.course-cover {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: radial-gradient(circle at 30% 20%, var(--diamond), transparent 60%), var(--ink);
+}
+
+.course-cover-1 {
+    background: radial-gradient(circle at 70% 30%, var(--champagne), transparent 62%), var(--ink);
+}
+
+.course-cover-2 {
+    background: radial-gradient(circle at 50% 80%, var(--sky), transparent 58%), var(--ink);
+}
+
+.course-cover svg {
+    width: 46%;
+    fill: none;
+    stroke: var(--ivory);
+    stroke-width: 0.8;
+    opacity: 0.78;
+}
+
+.course-cover.is-small {
+    border-radius: calc(var(--radius) - 8px);
+}
+
+.course-cover.is-small svg {
+    width: 38%;
+}
+
+/* ---------- Fiche formation ---------- */
+.course-detail {
+    max-width: calc(var(--max) + var(--gutter) * 2);
+    margin-inline: auto;
+    padding: 120px var(--gutter) clamp(80px, 10vw, 130px);
+}
+
+.course-back {
+    display: inline-block;
+    margin-bottom: 2rem;
+}
+
+.course-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    gap: clamp(32px, 6vw, 90px);
+    align-items: start;
+}
+
+.course-title {
+    margin: 0.4rem 0 1rem;
+    font-family: var(--serif);
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 340;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+}
+
+.course-program-title {
+    margin-top: clamp(2.4rem, 5vw, 3.6rem);
+}
+
+.course-program {
+    list-style: none;
+    margin-top: 1.4rem;
+    border-top: 1px solid var(--line);
+}
+
+.course-program > li {
+    padding: 1.2rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.course-module-title {
+    margin-bottom: 0.6rem;
+    font-family: var(--serif);
+    font-size: 1.25rem;
+}
+
+.course-module-title span,
+.classroom-module-title span,
+.course-editor-index {
+    margin-right: 0.5rem;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+}
+
+.course-program ul {
+    list-style: none;
+    display: grid;
+    gap: 0.3rem;
+}
+
+.course-lesson-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem 1rem;
+    padding: 0.35rem 0;
+    color: var(--text-soft);
+}
+
+.course-lesson-row > span:first-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.course-lesson-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text);
+    text-align: left;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+.course-preview {
+    flex-basis: 100%;
+    display: grid;
+    gap: 1rem;
+    margin: 0.6rem 0 1rem;
+}
+
+.course-buy {
+    position: sticky;
+    top: 100px;
+    display: grid;
+    gap: 1.1rem;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.course-buy .btn {
+    justify-content: center;
+}
+
+.terms-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--text-soft);
+    cursor: pointer;
+}
+
+.terms-check input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin-top: 0.15em;
+    accent-color: var(--ink);
+}
+
+.terms-check a {
+    color: var(--text);
+}
+
+.video-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: calc(var(--radius) - 6px);
+    background: var(--ink);
+}
+
+.video-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.rich-text {
+    display: grid;
+    gap: 0.9rem;
+    max-width: 68ch;
+    line-height: 1.7;
+}
+
+.rich-text p,
+.comment-body p,
+.post-body p {
+    white-space: pre-line;
+}
+
+/* ---------- Paiement ---------- */
+.pay-page {
+    display: grid;
+    place-items: center;
+    min-height: 80vh;
+    padding: 120px var(--gutter) 80px;
+}
+
+.pay-card {
+    display: grid;
+    gap: 1rem;
+    width: min(100%, 520px);
+    padding: clamp(24px, 5vw, 40px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.pay-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    color: inherit;
+    text-decoration: none;
+}
+
+.pay-hello {
+    font-size: 1.05rem;
+}
+
+.pay-intro {
+    color: var(--text-soft);
+}
+
+.pay-title {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    font-weight: 380;
+    line-height: 1.1;
+}
+
+.pay-summary {
+    display: grid;
+    gap: 0.3rem;
+    padding: 1.1rem 0;
+    border-block: 1px solid var(--line);
+}
+
+.pay-label {
+    font-family: var(--serif);
+    font-size: 1.25rem;
+}
+
+.pay-amount {
+    font-family: var(--serif);
+    font-size: 2.2rem;
+    font-weight: 420;
+}
+
+.pay-button {
+    justify-content: center;
+}
+
+.pay-done {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--success) 20%, transparent);
+    color: var(--success);
+}
+
+.notice-success {
+    border-color: color-mix(in oklab, var(--success) 40%, transparent);
+    background: color-mix(in oklab, var(--success) 10%, transparent);
+}
+
+.notice-success svg {
+    vertical-align: -0.2em;
+    color: var(--success);
+}
+
+.pay-link-result code {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+}
+
+/* ---------- Espace : mes formations ---------- */
+.my-courses {
+    list-style: none;
+    display: grid;
+    gap: 14px;
+}
+
+.my-course {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 20px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.3s;
+}
+
+.my-course:hover {
+    border-color: var(--line-strong);
+}
+
+.my-course-body {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.progress {
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--line);
+}
+
+.progress span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.space-header + .progress {
+    margin-bottom: 28px;
+}
+
+/* ---------- Salle de cours ---------- */
+.classroom {
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+    gap: clamp(20px, 3vw, 40px);
+    align-items: start;
+}
+
+.classroom-nav {
+    position: sticky;
+    top: 24px;
+    display: grid;
+    gap: 1.2rem;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.classroom-module-title {
+    margin-bottom: 0.4rem;
+    font-weight: 650;
+}
+
+.classroom-module ul {
+    list-style: none;
+    display: grid;
+    gap: 2px;
+}
+
+.classroom-lesson {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    text-align: left;
+    color: var(--text-soft);
+}
+
+.classroom-lesson:hover {
+    background: var(--surface-2);
+}
+
+.classroom-lesson.is-current {
+    background: var(--surface-2);
+    color: var(--text);
+    font-weight: 600;
+}
+
+.classroom-check {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    margin-top: 0.1em;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+}
+
+.classroom-lesson.is-done .classroom-check {
+    border-color: transparent;
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.classroom-lesson-view {
+    display: grid;
+    gap: 1.1rem;
+    min-width: 0;
+}
+
+.classroom-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.8rem;
+    border-block: 1px solid var(--line);
+}
+
+.classroom-pager {
+    display: flex;
+    gap: 1.2rem;
+}
+
+/* ---------- Commentaires et communauté ---------- */
+.lesson-comments,
+.community {
+    display: grid;
+    gap: 1rem;
+}
+
+.lesson-comments .space-subtitle svg {
+    vertical-align: -0.15em;
+}
+
+.composer {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.composer textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    background: var(--bg);
+    color: inherit;
+    font: inherit;
+    resize: vertical;
+}
+
+.composer .btn {
+    justify-self: end;
+}
+
+.comments,
+.posts {
+    list-style: none;
+    display: grid;
+    gap: 12px;
+}
+
+.comment {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--surface);
+}
+
+.comment-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.comment-head .icon-button {
+    margin-left: auto;
+}
+
+.chip-coach {
+    border-color: transparent;
+    background: var(--ink);
+    color: var(--ivory);
+}
+
+[data-theme='dark'] .chip-coach {
+    background: var(--ivory);
+    color: var(--ink);
+}
+
+.post {
+    display: grid;
+    gap: 0.6rem;
+    padding: 18px 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.post.is-pinned {
+    border-color: color-mix(in oklab, var(--accent) 50%, transparent);
+}
+
+.post-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem;
+    font-size: 0.88rem;
+}
+
+.post-actions .is-liked {
+    color: var(--danger);
+}
+
+.post-thread {
+    display: grid;
+    gap: 10px;
+    padding-left: 14px;
+    border-left: 2px solid var(--line);
+}
+
+/* ---------- Statuts de paiement ---------- */
+.chip-pay-Paid {
+    border-color: transparent;
+    background: color-mix(in oklab, var(--success) 22%, transparent);
+}
+
+.chip-pay-Pending {
+    border-color: transparent;
+    background: color-mix(in oklab, var(--sky) 30%, transparent);
+}
+
+.chip-pay-Failed,
+.chip-pay-Refunded {
+    border-color: color-mix(in oklab, var(--danger) 40%, transparent);
+}
+
+.chip-pay-Canceled {
+    opacity: 0.6;
+}
+
+/* ---------- Back-office ---------- */
+.payments-filter {
+    margin: 8px 0 18px;
+}
+
+.stripe-state {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+}
+
+.stripe-state svg {
+    color: var(--success);
+}
+
+.steps-inline {
+    display: grid;
+    gap: 0.4rem;
+    padding-left: 1.2rem;
+    color: var(--text-soft);
+}
+
+.course-editor-module {
+    gap: 0.8rem;
+}
+
+.course-editor-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.course-editor-title {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    font-family: var(--serif);
+    font-size: 1.2rem;
+}
+
+.course-editor-title:hover,
+.course-editor-title:focus {
+    border-color: var(--line-strong);
+    background: var(--bg);
+}
+
+.course-editor-lessons {
+    list-style: none;
+    display: grid;
+    gap: 4px;
+}
+
+.course-editor-lesson {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.8rem;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.course-editor-lesson .link-quiet {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.lesson-form {
+    margin: 8px 0;
+    padding: 16px;
+    border-radius: 16px;
+    background: var(--bg);
+}
+
+.icon-button:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 960px) {
+    .course-detail-grid,
+    .classroom {
+        grid-template-columns: 1fr;
+    }
+
+    .course-buy,
+    .classroom-nav {
+        position: static;
+        max-height: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .my-course {
+        grid-template-columns: 1fr;
+    }
+
+    .my-course .course-cover {
+        display: none;
+    }
+
+    .classroom-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

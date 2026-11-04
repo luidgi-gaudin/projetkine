@@ -181,3 +181,119 @@ export type CalendlyStatus = {
         calendlyUrl: string
     }[]
 }
+
+// ---------- Formations et paiements ----------
+export type PaymentKind = 'Course' | 'Seminar' | 'Other'
+export type PaymentStatus = 'Pending' | 'Paid' | 'Failed' | 'Canceled' | 'Refunded'
+
+export type CourseCard = {
+    id: string
+    slug: string
+    title: string
+    summary: string
+    durationLabel: string | null
+    priceCents: number
+    currency: string
+    modules: number
+    lessons: number
+}
+
+export type PublicLesson = {
+    id: string
+    title: string
+    durationMinutes: number | null
+    freePreview: boolean
+    body: string | null
+    videoEmbedUrl: string | null
+}
+
+export type CourseDetail = Omit<CourseCard, 'modules' | 'lessons'> & {
+    description: string
+    modules: { title: string, lessons: PublicLesson[] }[]
+    hasAccess: boolean
+    paymentsEnabled: boolean
+}
+
+export type MyCourse = {
+    id: string
+    slug: string
+    title: string
+    summary: string
+    published: boolean
+    lessons: number
+    done: number
+}
+
+export type ClassroomLesson = {
+    id: string
+    title: string
+    body: string
+    videoEmbedUrl: string | null
+    durationMinutes: number | null
+    done: boolean
+    comments: number
+}
+
+export type Classroom = {
+    id: string
+    slug: string
+    title: string
+    summary: string
+    isCoach: boolean
+    modules: { id: string, title: string, lessons: ClassroomLesson[] }[]
+}
+
+export type CommunityComment = {
+    id: string
+    authorName: string
+    authorIsCoach: boolean
+    body: string
+    createdAt: string
+    canDelete: boolean
+}
+
+export type CommunityPost = CommunityComment & {
+    pinned: boolean
+    likes: number
+    likedByMe: boolean
+    comments: CommunityComment[]
+}
+
+export type PaymentLink = {
+    label: string
+    kind: PaymentKind
+    amountCents: number
+    currency: string
+    status: PaymentStatus
+    expired: boolean
+    firstName: string | null
+    courseSlug: string | null
+    courseTitle: string | null
+    receiptUrl: string | null
+    paymentsEnabled: boolean
+}
+
+export type PaymentConfirmation = {
+    status: PaymentStatus
+    kind: PaymentKind
+    label: string
+    amountCents: number
+    currency: string
+    courseSlug: string | null
+    linkedToAccount: boolean
+    receiptUrl: string | null
+}
+
+export type MyPayment = {
+    id: string
+    label: string
+    kind: PaymentKind
+    amountCents: number
+    currency: string
+    status: PaymentStatus
+    createdAt: string
+    paidAt: string | null
+    expiresAt: string
+    receiptUrl: string | null
+    payUrl: string | null
+}

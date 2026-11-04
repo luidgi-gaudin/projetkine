@@ -61,6 +61,7 @@ export function SiteFooter() {
                 <span className="site-footer-legal">
                     <Link to="/mentions-legales">{t.ui.legalNotice}</Link>
                     <Link to="/confidentialite">{t.ui.privacy}</Link>
+                    <Link to="/cgv">{t.ui.cgv}</Link>
                 </span>
             </div>
         </footer>

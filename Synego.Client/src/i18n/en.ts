@@ -13,6 +13,7 @@ export const en: Dictionary = {
     },
     nav: [
         {to: '/seminaires', label: 'Seminars'},
+        {to: '/formations', label: 'Courses'},
         {to: '/accompagnement', label: 'Coaching'},
         {to: '/a-propos', label: 'Approach'},
         {to: '/contact', label: 'Contact'},
@@ -363,6 +364,7 @@ export const en: Dictionary = {
         footerQuoteOnly: 'Prices on quote only.',
         legalNotice: 'Legal notice',
         privacy: 'Privacy',
+        cgv: 'Terms of sale',
         notFoundTitle: 'This page has another appointment.',
         notFoundCta: 'Back to home',
         dialogBack: 'Back',
@@ -438,6 +440,8 @@ export const en: Dictionary = {
             appointments: 'Appointments',
             documents: 'Documents',
             requests: 'Requests',
+            formations: 'Courses',
+            payments: 'Payments',
             profile: 'Profile',
             admin: 'Back office'
         },
@@ -516,6 +520,110 @@ export const en: Dictionary = {
         dangerButton: 'Delete permanently',
     },
 
+    formations: {
+        eyebrow: 'Online courses',
+        title: ['Learn', 'at your', 'own pace.'],
+        intro: 'Video programmes to build new habits: posture, breathing, recovery. Go at your own pace; the community and the coach answer your questions.',
+        empty: 'The first courses are coming soon. Write to us to be notified.',
+        lessons: '{n} lessons',
+        modules: '{n} modules',
+        seeProgram: 'See the programme',
+        installments: 'or in 3 instalments with Klarna',
+        buy: 'Buy the course',
+        access: 'Open the course',
+        loginToBuy: 'Sign in to buy',
+        program: 'The programme',
+        preview: 'Free preview',
+        watchPreview: 'Watch the preview',
+        included: 'Included',
+        includedItems: ['Unlimited access to the videos and materials', 'The member community and answers from the coach', 'Your progress saved across all your devices'],
+        termsBefore: 'I accept the ',
+        termsLink: 'terms of sale',
+        termsAfter: ' and request immediate access, which ends my right of withdrawal.',
+        termsRequired: 'Tick the box to accept the terms of sale.',
+        paymentsOff: 'Online payment is not enabled yet. Write to us to book your place.',
+        redirecting: 'Redirecting to secure payment…',
+        secure: 'Secure payment by Stripe: card, Apple Pay, or 3 instalments with Klarna.',
+        notFound: 'This course does not exist or is no longer offered.',
+        back: 'All courses',
+        minutes: 'min',
+        draft: 'Draft: visible to coaches only.',
+    },
+
+    payment: {
+        eyebrow: 'Secure payment',
+        hello: 'Hello {name},',
+        helloAnon: 'Hello,',
+        intro: 'Here is the payment Synégo prepared for you.',
+        pay: 'Pay {amount}',
+        methods: 'Card, Apple Pay, or 3 instalments with Klarna. Synégo never sees your card details.',
+        paid: 'This payment has been made. Thank you!',
+        receipt: 'View receipt',
+        expired: 'This link is no longer valid. Write to us to get a new one.',
+        canceled: 'This link has been cancelled.',
+        notFound: 'Payment link not found. Check the address you received by email.',
+        kind: {Course: 'Course', Seminar: 'Seminar', Other: 'Coaching'} as Record<string, string>,
+        returnTitle: 'Thank you, all paid.',
+        returnPending: 'Confirming your payment…',
+        returnPendingText: 'Some payment methods take a few moments. This page updates by itself.',
+        returnCourse: 'Your course is waiting in your space.',
+        returnCourseClaim: 'Sign in with the email address used for the payment (verified): the course will appear in your space.',
+        returnOther: 'A receipt is on its way by email. See you soon!',
+        openCourse: 'Start the course',
+        goSpace: 'Go to my space',
+        home: 'Back to home',
+        returnFailed: 'The payment did not go through. Nothing has been charged.',
+        returnUnknown: 'We cannot find this payment. If you were charged, please write to us.',
+    },
+
+    learning: {
+        myCoursesTitle: 'Your courses',
+        myCoursesText: 'Pick up where you left off. Each course has its community: ask questions, share your progress.',
+        empty: 'No course yet.',
+        browse: 'Browse the courses',
+        progress: '{done} / {total} lessons',
+        resume: 'Continue',
+        start: 'Start',
+        draft: 'Draft',
+        back: 'Your courses',
+        tabLessons: 'Lessons',
+        tabCommunity: 'Community',
+        markDone: 'Mark as done',
+        done: 'Done',
+        next: 'Next lesson',
+        previous: 'Previous lesson',
+        comments: 'Questions and comments',
+        commentPlaceholder: 'A question, a feeling, a tip…',
+        send: 'Post',
+        noComments: 'Be the first to comment on this lesson.',
+        noLessons: 'The content of this course is coming soon.',
+        communityText: 'Talk with the other members and the coach. No health data here: the community is a place to share, not a consultation.',
+        newPost: 'Share something with the group…',
+        pinned: 'Pinned',
+        like: 'Like',
+        comment: 'Comment',
+        delete: 'Delete',
+        pin: 'Pin',
+        unpin: 'Unpin',
+        coach: 'Coach',
+        confirmDelete: 'Delete this message?',
+        noPosts: 'The community is just starting: introduce yourself!',
+        paymentsTitle: 'Your payments',
+        paymentsText: 'Courses, seminars and coaching paid online, and the payments waiting for you.',
+        noPayments: 'No payment yet.',
+        payNow: 'Pay',
+        status: {
+            Pending: 'To pay',
+            Paid: 'Paid',
+            Failed: 'Failed',
+            Canceled: 'Cancelled',
+            Refunded: 'Refunded'
+        } as Record<string, string>,
+        receipt: 'Receipt',
+        due: 'To pay by {date}',
+        pendingNotice: 'A payment is waiting for you: {label}.',
+    },
+
     pause: {
         cta: 'Take a 30-second pause',
         intro: 'Settle in. Drop your shoulders, rest your hands.',
@@ -530,6 +638,43 @@ export const en: Dictionary = {
     },
 
     legalPages: {
+        cgv: {
+            title: 'Terms of sale',
+            sections: [
+                {
+                    heading: 'Student project',
+                    text: 'This website was built during an ISITECH workshop: the company and its offers are fictitious. Payments run in test mode and no real money is charged.'
+                },
+                {
+                    heading: 'Purpose',
+                    text: `These terms govern the online sale, by ${brand.company.legalName}, of video courses and the online payment of quoted services (seminars, coaching).`
+                },
+                {
+                    heading: 'Prices and payment',
+                    text: 'Course prices include all taxes. Seminars and coaching are quoted, then paid through a payment link. Payment is handled by Stripe: card, Apple Pay, or 3 instalments with Klarna, subject to Klarna\'s approval and terms. Synégo never has access to your card details.'
+                },
+                {
+                    heading: 'Access to courses',
+                    text: 'Access opens as soon as the payment is confirmed, from your client space, for an unlimited period while the service exists. It is personal: credentials must not be shared.'
+                },
+                {
+                    heading: 'Right of withdrawal',
+                    text: 'For an online course, you request immediate access to digital content and expressly waive your right of withdrawal (article L221-28 of the French Consumer Code). For a seminar or coaching paid by a consumer, you have 14 days after payment to withdraw, unless the service has already started at your request. Businesses have no right of withdrawal.'
+                },
+                {
+                    heading: 'Community',
+                    text: 'Each course includes a discussion space. Be kind, and share no health data or personal information about others. The coach may remove any message that breaks these rules.'
+                },
+                {
+                    heading: 'Nature of services',
+                    text: 'Content and services relate to wellbeing and prevention. They are neither a diagnosis nor a medical treatment, and do not replace advice from a health professional.'
+                },
+                {
+                    heading: 'Complaints',
+                    text: `For any question or complaint: ${brand.email}. In the event of a dispute, an amicable solution will be sought before any action.`
+                },
+            ],
+        },
         mentions: {
             title: 'Legal notice',
             sections: [

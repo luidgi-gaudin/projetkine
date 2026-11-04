@@ -332,6 +332,32 @@
           "title": "Règle RGPD : pas de données de santé dans les notes, affichée au coach"
         }
       ]
+    },
+    {
+      "id": "S14",
+      "title": "Je vends mes formations en ligne et j'encaisse mes séminaires par lien de paiement",
+      "story": "En tant que coach, je veux vendre des formations vidéo avec une communauté et envoyer des liens de paiement (carte ou 3 fois avec Klarna), afin d'être payée sans relance ni virement.",
+      "proof": "Acheter une formation avec la carte de test Stripe, la retrouver dans l'espace membre ; créer un lien de paiement pour un séminaire, le payer, le voir « Payé » dans le back-office.",
+      "priority": "Haute",
+      "points": 8,
+      "tasks": [
+        {
+          "label": "Dev",
+          "title": "Formations : modules, leçons vidéo, progression, communauté et commentaires"
+        },
+        {
+          "label": "Dev",
+          "title": "Stripe Checkout (carte, Klarna), validation idempotente, liens de paiement, reçus"
+        },
+        {
+          "label": "Réseau",
+          "title": "Webhook Stripe en HTTPS, CSP des lecteurs vidéo, sauvegarde des nouvelles tables"
+        },
+        {
+          "label": "Mixte",
+          "title": "CGV et renonciation au droit de rétractation pour le contenu numérique"
+        }
+      ]
     }
   ]
 }

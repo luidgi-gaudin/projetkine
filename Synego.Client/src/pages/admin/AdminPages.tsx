@@ -492,6 +492,10 @@ export function AdminRequestDetailPage() {
                 <>
                     <SpaceHeader title={data.subject}
                                  text={`#${data.id} · ${categoryLabels[data.category]} · ${data.contactName} · ${data.contactEmail}${data.contactPhone ? ` · ${data.contactPhone}` : ''}`}>
+                        <Link className="btn btn-line btn-small"
+                              to={`/admin/paiements?type=Seminar&demande=${data.id}&email=${encodeURIComponent(data.contactEmail)}&nom=${encodeURIComponent(data.contactName)}&objet=${encodeURIComponent(data.subject)}`}>
+                            Envoyer un lien de paiement
+                        </Link>
                         <select value={data.status} onChange={(e) => void setStatus(e.target.value as TicketStatus)}>
                             {Object.entries(statusLabels).map(([value, label]) => <option key={value}
                                                                                           value={value}>{label}</option>)}

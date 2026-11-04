@@ -153,6 +153,31 @@ Uptime Kuma et Mailpit restent toujours réservés au VPN.
 **Rendez-vous dans l'espace client** : menu *Rendez-vous* : réserver, déplacer (le nouveau créneau remplace
 l'ancien, annulé automatiquement), annuler jusqu'à 24 h avant, rejoindre la visio, ajouter à l'agenda.
 
+## Formations en ligne et paiements (Stripe, Klarna)
+
+Façon Skool : la coach vend des **formations vidéo** (modules → leçons, progression, communauté par
+formation) et encaisse **séminaires et accompagnements sur devis** par **lien de paiement**.
+
+| Qui      | Où                                        | Quoi                                                                                    |
+|----------|-------------------------------------------|-----------------------------------------------------------------------------------------|
+| Visiteur | `/formations`, `/formations/{slug}`       | Catalogue avec prix, programme, aperçus gratuits, achat (compte requis, CGV acceptées)  |
+| Client   | `/paiement/{lien}`                        | Page de paiement d'un séminaire, d'un accompagnement ou d'une formation                 |
+| Membre   | `/espace/formations`, `/espace/paiements` | Leçons (vidéo YouTube/Vimeo/Loom + texte), progression, commentaires, communauté, reçus |
+| Coach    | `/admin/formations`, `/admin/paiements`   | Créer formations et leçons, offrir un accès, créer/envoyer/annuler des liens, suivre    |
+
+**Mise en route (2 minutes, depuis le back-office)** : *Paiements* › coller la clé secrète Stripe (`sk_test_…` pour
+essayer). Elle est vérifiée puis chiffrée en base ; en production, le webhook
+`/api/webhooks/stripe` est créé automatiquement. **Paiement en 3 fois** : activer *Klarna* dans
+Stripe › Paramètres › Moyens de paiement (les moyens proposés sont ceux activés dans Stripe).
+
+- Le paiement se fait sur la page hébergée Stripe Checkout : aucune donnée bancaire ne transite par Synégo.
+- Validation idempotente par le webhook **et** au retour du client (`/paiement/merci`), donc fiable même sans webhook en
+  local.
+- Un lien envoyé à une simple adresse e-mail est rattaché au compte qui se connecte avec cette adresse **vérifiée**.
+- Remboursement depuis Stripe : le paiement passe en « remboursé » et l'accès à la formation est retiré.
+- Depuis une demande de devis : bouton « Envoyer un lien de paiement » (pré-rempli).
+- Cartes de test Stripe : `4242 4242 4242 4242`, date future, CVC quelconque.
+
 ## CI/CD : de `main` à la production, automatiquement
 
 ```

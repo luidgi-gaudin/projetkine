@@ -81,14 +81,18 @@ aux nouvelles tables (`ALTER DEFAULT PRIVILEGES`).
 
 ## Données
 
-| Table                        | Contenu                                                                                   |
-|------------------------------|-------------------------------------------------------------------------------------------|
-| `user_accounts`              | Compte applicatif lié à l'identité Firebase, rôle (Prospect, Client, Admin)               |
-| `appointments`               | Rendez-vous recopiés depuis Calendly (idempotent sur l'URI de réservation)                |
-| `client_documents`           | Métadonnées des documents, fichier dans le bucket sous un nom aléatoire                   |
-| `tickets`, `ticket_messages` | Demandes de devis, de contact et de support, avec leur fil                                |
-| `client_notes`               | Notes privées du coach sur un client (jamais exposées au client, pas de données de santé) |
-| `app_settings`               | Réglages du back-office (compte Calendly connecté, jeton chiffré, choix des événements)   |
+| Table                                                     | Contenu                                                                                           |
+|-----------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| `user_accounts`                                           | Compte applicatif lié à l'identité Firebase, rôle (Prospect, Client, Admin)                       |
+| `appointments`                                            | Rendez-vous recopiés depuis Calendly (idempotent sur l'URI de réservation)                        |
+| `client_documents`                                        | Métadonnées des documents, fichier dans le bucket sous un nom aléatoire                           |
+| `tickets`, `ticket_messages`                              | Demandes de devis, de contact et de support, avec leur fil                                        |
+| `client_notes`                                            | Notes privées du coach sur un client (jamais exposées au client, pas de données de santé)         |
+| `courses`, `course_modules`, `lessons`                    | Formations en ligne : prix, publication, modules, leçons (texte, lien vidéo, aperçu gratuit)      |
+| `enrollments`, `lesson_progress`                          | Accès d'un compte à une formation (achat, lien, offert) et leçons terminées                       |
+| `community_posts`, `community_comments`, `post_reactions` | Communauté par formation et commentaires sous les leçons                                          |
+| `payments`                                                | Paiements Stripe : achat, lien de paiement (jeton aléatoire), statut, moyen (carte, Klarna), reçu |
+| `app_settings`                                            | Réglages du back-office (compte Calendly connecté, jeton chiffré, choix des événements)           |
 
 Suppression d'un document : douce (`DeletedAt`), purge définitive après 30 jours. Une restauration
 de la base fait donc réapparaître le document **et** son fichier. Fermeture de compte : suppression immédiate.
@@ -104,6 +108,10 @@ de la base fait donc réapparaître le document **et** son fichier. Fermeture de
 - Fichiers : extension, taille (10 Mo) et signature réelle vérifiées ; noms aléatoires ; téléchargement
   uniquement par l'API, après contrôle du propriétaire.
 - Formulaires publics : limités à 10 envois / 10 min / IP (API) et 10 req/s (nginx), champ piège anti-robots.
+- Paiements : Stripe Checkout hébergé (carte, Apple Pay, Klarna) ; l'API relit chaque session chez Stripe,
+  webhook signé (`Stripe-Signature`, 5 min) ; clé secrète et secret du webhook chiffrés (Data Protection) ;
+  lien de paiement = jeton de 256 bits ; accès aux formations rattaché au compte, ou à une adresse e-mail vérifiée.
+- Vidéos : seuls YouTube (sans cookie), Vimeo et Loom sont convertis en lecteur (liste blanche + CSP `frame-src`).
 - Calendly : l'API ne lit que des URI `api.calendly.com` (pas de SSRF) ; webhook signé HMAC, valable 3 min.
 - En-têtes : CSP stricte (Firebase + Calendly uniquement), HSTS, `X-Frame-Options`, `nosniff`.
 - RGPD : pas de cookie publicitaire ni de mesure d'audience, polices auto-hébergées (pas de Google Fonts),

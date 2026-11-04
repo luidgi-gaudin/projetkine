@@ -5,7 +5,7 @@ import {useAuth} from './auth/AuthContext'
 import {RequireAuth} from './auth/RequireAuth'
 import {SpaceLayout, type SpaceNavItem} from './components/espace/SpaceLayout'
 import {PublicLayout} from './components/site/PublicLayout'
-import {Calendar, FileIcon, Home, LinkIcon, Lock, Message, UserIcon, Users} from './components/ui/Icons'
+import {Calendar, CardIcon, FileIcon, Home, LinkIcon, Lock, Message, Play, UserIcon, Users} from './components/ui/Icons'
 import {useI18n} from './i18n/context'
 import {DialLoader} from './components/brand/Dial'
 import type {Overview} from './pages/admin/AdminPages'
@@ -16,6 +16,7 @@ import {HomePage} from './pages/site/HomePage'
 import {LegalPage, NotFoundPage} from './pages/site/LegalPage'
 import {RendezVousPage} from './pages/site/RendezVousPage'
 import {SeminairesPage} from './pages/site/SeminairesPage'
+import {FormationDetailPage, FormationsPage} from './pages/site/FormationsPage'
 
 // Pages chargées à la demande : la vitrine reste légère, l'espace et le back-office arrivent ensuite.
 function page<M>(loader: () => Promise<M>, name: keyof M) {
@@ -25,6 +26,9 @@ function page<M>(loader: () => Promise<M>, name: keyof M) {
 const auth = {login: () => import('./pages/auth/LoginPage'), register: () => import('./pages/auth/RegisterPage')}
 const espace = () => import('./pages/espace/EspacePages')
 const admin = () => import('./pages/admin/AdminPages')
+const learning = () => import('./pages/espace/LearningPages')
+const adminLearning = () => import('./pages/admin/AdminLearningPages')
+const payments = () => import('./pages/site/PaymentPages')
 const LoginPage = page(auth.login, 'LoginPage')
 const RegisterPage = page(auth.register, 'RegisterPage')
 const EspaceHomePage = page(espace, 'EspaceHomePage')
@@ -40,6 +44,14 @@ const AdminRequestsPage = page(admin, 'AdminRequestsPage')
 const AdminRequestDetailPage = page(admin, 'AdminRequestDetailPage')
 const AdminCoachesPage = page(admin, 'AdminCoachesPage')
 const AdminCalendlyPage = page(() => import('./pages/admin/AdminCalendlyPage'), 'AdminCalendlyPage')
+const EspaceFormationsPage = page(learning, 'EspaceFormationsPage')
+const EspaceClassroomPage = page(learning, 'EspaceClassroomPage')
+const EspacePaymentsPage = page(learning, 'EspacePaymentsPage')
+const AdminCoursesPage = page(adminLearning, 'AdminCoursesPage')
+const AdminCourseEditPage = page(adminLearning, 'AdminCourseEditPage')
+const AdminPaymentsPage = page(adminLearning, 'AdminPaymentsPage')
+const PaymentLinkPage = page(payments, 'PaymentLinkPage')
+const PaymentReturnPage = page(payments, 'PaymentReturnPage')
 
 const Loading = ({children}: { children: ReactNode }) => <Suspense fallback={<DialLoader/>}>{children}</Suspense>
 
@@ -48,6 +60,8 @@ const adminNav: SpaceNavItem[] = [
     {to: '/admin/clients', label: 'Clients', icon: Users},
     {to: '/admin/rendez-vous', label: 'Rendez-vous', icon: Calendar},
     {to: '/admin/demandes', label: 'Demandes', icon: Message},
+    {to: '/admin/formations', label: 'Formations', icon: Play},
+    {to: '/admin/paiements', label: 'Paiements', icon: CardIcon},
     {to: '/admin/calendly', label: 'Calendly', icon: LinkIcon},
     {to: '/admin/coachs', label: 'Coachs', icon: Lock},
     {to: '/espace', label: 'Mon espace', icon: UserIcon},
@@ -80,7 +94,9 @@ export default function App() {
         {to: '/espace', label: t.espace.nav.home, icon: Home, end: true},
         {to: '/espace/rendez-vous', label: t.espace.nav.appointments, icon: Calendar},
         {to: '/espace/documents', label: t.espace.nav.documents, icon: FileIcon},
+        {to: '/espace/formations', label: t.espace.nav.formations, icon: Play},
         {to: '/espace/demandes', label: t.espace.nav.requests, icon: Message},
+        {to: '/espace/paiements', label: t.espace.nav.payments, icon: CardIcon},
         {to: '/espace/profil', label: t.espace.nav.profile, icon: UserIcon},
         ...(profile?.role === 'Coach' ? [{to: '/admin', label: t.espace.nav.admin, icon: Lock}] : []),
     ]
@@ -97,6 +113,11 @@ export default function App() {
                 <Route path="contact" element={<ContactPage/>}/>
                 <Route path="mentions-legales" element={<LegalPage page="mentions"/>}/>
                 <Route path="confidentialite" element={<LegalPage page="privacy"/>}/>
+                <Route path="cgv" element={<LegalPage page="cgv"/>}/>
+                <Route path="formations" element={<FormationsPage/>}/>
+                <Route path="formations/:slug" element={<FormationDetailPage/>}/>
+                <Route path="paiement/merci" element={<Loading><PaymentReturnPage/></Loading>}/>
+                <Route path="paiement/:token" element={<Loading><PaymentLinkPage/></Loading>}/>
                 <Route path="*" element={<NotFoundPage/>}/>
             </Route>
 
@@ -109,6 +130,9 @@ export default function App() {
                 <Route index element={<EspaceHomePage/>}/>
                 <Route path="rendez-vous" element={<EspaceAppointmentsPage/>}/>
                 <Route path="documents" element={<EspaceDocumentsPage/>}/>
+                <Route path="formations" element={<EspaceFormationsPage/>}/>
+                <Route path="formations/:slug" element={<EspaceClassroomPage/>}/>
+                <Route path="paiements" element={<EspacePaymentsPage/>}/>
                 <Route path="demandes" element={<EspaceRequestsPage/>}/>
                 <Route path="demandes/:id" element={<EspaceRequestDetailPage/>}/>
                 <Route path="profil" element={<EspaceProfilePage/>}/>
@@ -122,6 +146,9 @@ export default function App() {
                 <Route path="rendez-vous" element={<AdminAppointmentsPage/>}/>
                 <Route path="demandes" element={<AdminRequestsPage/>}/>
                 <Route path="demandes/:id" element={<AdminRequestDetailPage/>}/>
+                <Route path="formations" element={<AdminCoursesPage/>}/>
+                <Route path="formations/:id" element={<AdminCourseEditPage/>}/>
+                <Route path="paiements" element={<AdminPaymentsPage/>}/>
                 <Route path="calendly" element={<AdminCalendlyPage/>}/>
                 <Route path="coachs" element={<AdminCoachesPage/>}/>
             </Route>

@@ -97,3 +97,13 @@ export function GoogleIcon({size = 18}: { size?: number }) {
         </svg>
     )
 }
+
+export const Play = (p: IconProps) => <Icon {...p}>
+    <rect x="3" y="4" width="18" height="14" rx="3"/>
+    <path d="M10 8.5v5l4.5-2.5z"/>
+    <path d="M8 21h8"/>
+</Icon>
+export const CardIcon = (p: IconProps) => <Icon {...p}>
+    <rect x="2.5" y="5" width="19" height="14" rx="2.5"/>
+    <path d="M2.5 10h19M6.5 15h4"/>
+</Icon>

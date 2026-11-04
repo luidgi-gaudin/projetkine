@@ -22,6 +22,7 @@
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3"/>
         <!-- Aligne EF Core sur la version de Microsoft.EntityFrameworkCore.Design (Npgsql tire la 10.0.4) -->
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.14"/>
+        <PackageReference Include="Stripe.net" Version="53.1.0"/>
         <!-- Version corrigée d'une dépendance de MailKit (10.0.0 a des vulnérabilités connues) -->
         <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14"/>
     </ItemGroup>

@@ -52,6 +52,13 @@ Le coach relie ensuite son compte **depuis son back-office** (menu *Calendly*) :
 Sur une offre Calendly payante, le webhook de synchronisation instantanée est créé automatiquement (`App__PublicUrl` =
 `https://DOMAINE`, défini par compose.yaml).
 
+## 4 bis. Stripe (formations et liens de paiement)
+
+Rien à copier dans `.env` : la coach relie Stripe depuis son back-office (*Paiements*), en collant sa clé
+secrète. Le webhook (`https://DOMAINE/api/webhooks/stripe`) est créé automatiquement quand `App__PublicUrl`
+est une adresse HTTPS publique. Pour le paiement en 3 fois, activer Klarna dans Stripe › Paramètres ›
+Moyens de paiement. Alternative : `STRIPE_SECRET_KEY` et `STRIPE_WEBHOOK_SECRET` dans `.env`.
+
 ## 5. Lancer
 
 ```bash

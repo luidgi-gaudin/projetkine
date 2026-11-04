@@ -4,7 +4,7 @@ import {Reveal, SplitLines} from '../../components/motion/Reveal'
 import {useI18n} from '../../i18n/context'
 
 /** Mentions légales et confidentialité (projet pédagogique : données de l'entreprise fictives, voir brand.ts). */
-export function LegalPage({page}: { page: 'mentions' | 'privacy' }) {
+export function LegalPage({page}: { page: 'mentions' | 'privacy' | 'cgv' }) {
     const {t} = useI18n()
     const content = t.legalPages[page]
 

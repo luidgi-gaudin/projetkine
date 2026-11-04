@@ -16,6 +16,7 @@ export const fr = {
     },
     nav: [
         {to: '/seminaires', label: 'Séminaires'},
+        {to: '/formations', label: 'Formations'},
         {to: '/accompagnement', label: 'Accompagnement'},
         {to: '/a-propos', label: 'L\'approche'},
         {to: '/contact', label: 'Contact'},
@@ -371,6 +372,7 @@ export const fr = {
         footerQuoteOnly: 'Tarifs sur devis uniquement.',
         legalNotice: 'Mentions légales',
         privacy: 'Confidentialité',
+        cgv: 'CGV',
         notFoundTitle: 'Cette page a pris un autre rendez-vous.',
         notFoundCta: 'Revenir à l\'accueil',
         dialogBack: 'Retour',
@@ -446,6 +448,8 @@ export const fr = {
             appointments: 'Rendez-vous',
             documents: 'Documents',
             requests: 'Demandes',
+            formations: 'Formations',
+            payments: 'Paiements',
             profile: 'Profil',
             admin: 'Back-office'
         },
@@ -524,6 +528,110 @@ export const fr = {
         dangerButton: 'Supprimer définitivement',
     },
 
+    formations: {
+        eyebrow: 'Formations en ligne',
+        title: ['Apprendre', 'à son', 'rythme.'],
+        intro: 'Des programmes en vidéo pour installer de nouveaux réflexes : posture, respiration, récupération. Vous avancez quand vous voulez ; la communauté et la coach répondent à vos questions.',
+        empty: 'Les premières formations arrivent bientôt. Écrivez-nous pour être prévenu.',
+        lessons: '{n} leçons',
+        modules: '{n} modules',
+        seeProgram: 'Voir le programme',
+        installments: 'ou en 3 fois avec Klarna',
+        buy: 'Acheter la formation',
+        access: 'Accéder à la formation',
+        loginToBuy: 'Se connecter pour acheter',
+        program: 'Le programme',
+        preview: 'Aperçu gratuit',
+        watchPreview: 'Voir l\'aperçu',
+        included: 'Inclus',
+        includedItems: ['Accès illimité aux vidéos et aux supports', 'La communauté des membres et les réponses de la coach', 'Votre progression enregistrée, sur tous vos appareils'],
+        termsBefore: 'J\'accepte les ',
+        termsLink: 'conditions générales de vente',
+        termsAfter: ' et je demande l\'accès immédiat, ce qui met fin à mon droit de rétractation.',
+        termsRequired: 'Cochez la case pour accepter les conditions générales de vente.',
+        paymentsOff: 'Le paiement en ligne n\'est pas encore activé. Écrivez-nous pour réserver votre place.',
+        redirecting: 'Redirection vers le paiement sécurisé…',
+        secure: 'Paiement sécurisé par Stripe : carte bancaire, Apple Pay, ou en 3 fois avec Klarna.',
+        notFound: 'Cette formation n\'existe pas ou n\'est plus proposée.',
+        back: 'Toutes les formations',
+        minutes: 'min',
+        draft: 'Brouillon : visible par les coachs uniquement.',
+    },
+
+    payment: {
+        eyebrow: 'Paiement sécurisé',
+        hello: 'Bonjour {name},',
+        helloAnon: 'Bonjour,',
+        intro: 'Voici le règlement préparé pour vous par Synégo.',
+        pay: 'Payer {amount}',
+        methods: 'Carte bancaire, Apple Pay, ou en 3 fois avec Klarna. Synégo ne voit jamais vos coordonnées bancaires.',
+        paid: 'Ce paiement est réglé. Merci !',
+        receipt: 'Voir le reçu',
+        expired: 'Ce lien n\'est plus valable. Écrivez-nous pour en recevoir un nouveau.',
+        canceled: 'Ce lien a été annulé.',
+        notFound: 'Lien de paiement introuvable. Vérifiez l\'adresse reçue par e-mail.',
+        kind: {Course: 'Formation', Seminar: 'Séminaire', Other: 'Accompagnement'} as Record<string, string>,
+        returnTitle: 'Merci, c\'est réglé.',
+        returnPending: 'Validation du paiement…',
+        returnPendingText: 'Certains moyens de paiement demandent quelques instants. Cette page se met à jour toute seule.',
+        returnCourse: 'Votre formation vous attend dans votre espace.',
+        returnCourseClaim: 'Connectez-vous avec l\'adresse e-mail utilisée pour le paiement (confirmée) : la formation apparaîtra dans votre espace.',
+        returnOther: 'Un reçu vous est envoyé par e-mail. À très bientôt !',
+        openCourse: 'Commencer la formation',
+        goSpace: 'Aller à mon espace',
+        home: 'Retour à l\'accueil',
+        returnFailed: 'Le paiement n\'a pas abouti. Aucun montant n\'a été prélevé.',
+        returnUnknown: 'Nous ne retrouvons pas ce paiement. Si votre compte a été débité, écrivez-nous.',
+    },
+
+    learning: {
+        myCoursesTitle: 'Vos formations',
+        myCoursesText: 'Reprenez là où vous vous étiez arrêté. Chaque formation a sa communauté : posez vos questions, partagez vos progrès.',
+        empty: 'Aucune formation pour l\'instant.',
+        browse: 'Découvrir les formations',
+        progress: '{done} / {total} leçons',
+        resume: 'Continuer',
+        start: 'Commencer',
+        draft: 'Brouillon',
+        back: 'Vos formations',
+        tabLessons: 'Leçons',
+        tabCommunity: 'Communauté',
+        markDone: 'Marquer comme terminée',
+        done: 'Terminée',
+        next: 'Leçon suivante',
+        previous: 'Leçon précédente',
+        comments: 'Questions et commentaires',
+        commentPlaceholder: 'Une question, un ressenti, une astuce…',
+        send: 'Publier',
+        noComments: 'Soyez la première personne à commenter cette leçon.',
+        noLessons: 'Le contenu de cette formation arrive bientôt.',
+        communityText: 'Échangez avec les autres membres et la coach. Pas de données de santé ici : la communauté est un espace de partage, pas de consultation.',
+        newPost: 'Partager quelque chose avec le groupe…',
+        pinned: 'Épinglé',
+        like: 'J\'aime',
+        comment: 'Commenter',
+        delete: 'Supprimer',
+        pin: 'Épingler',
+        unpin: 'Désépingler',
+        coach: 'Coach',
+        confirmDelete: 'Supprimer ce message ?',
+        noPosts: 'La communauté démarre : présentez-vous !',
+        paymentsTitle: 'Vos paiements',
+        paymentsText: 'Formations, séminaires et accompagnements réglés en ligne, et les paiements qui vous attendent.',
+        noPayments: 'Aucun paiement pour l\'instant.',
+        payNow: 'Payer',
+        status: {
+            Pending: 'À régler',
+            Paid: 'Réglé',
+            Failed: 'Échoué',
+            Canceled: 'Annulé',
+            Refunded: 'Remboursé'
+        } as Record<string, string>,
+        receipt: 'Reçu',
+        due: 'À régler avant le {date}',
+        pendingNotice: 'Un paiement vous attend : {label}.',
+    },
+
     pause: {
         cta: 'S\'accorder une pause de 30 secondes',
         intro: 'Installez-vous. Relâchez les épaules, posez les mains.',
@@ -538,6 +646,43 @@ export const fr = {
     },
 
     legalPages: {
+        cgv: {
+            title: 'Conditions générales de vente',
+            sections: [
+                {
+                    heading: 'Projet pédagogique',
+                    text: 'Ce site est réalisé dans le cadre d\'un atelier ISITECH : l\'entreprise et ses offres sont fictives. Les paiements fonctionnent en mode test, aucun montant réel n\'est prélevé.'
+                },
+                {
+                    heading: 'Objet',
+                    text: `Les présentes conditions régissent la vente en ligne, par ${brand.company.legalName}, de formations vidéo et le règlement en ligne de prestations sur devis (séminaires, accompagnements).`
+                },
+                {
+                    heading: 'Prix et paiement',
+                    text: 'Les prix des formations sont indiqués toutes taxes comprises. Les séminaires et accompagnements font l\'objet d\'un devis, puis d\'un lien de paiement. Le paiement est assuré par Stripe : carte bancaire, Apple Pay, ou paiement en 3 fois avec Klarna, sous réserve d\'acceptation par Klarna et selon ses conditions. Synégo n\'a jamais accès à vos coordonnées bancaires.'
+                },
+                {
+                    heading: 'Accès aux formations',
+                    text: 'L\'accès est ouvert dès la confirmation du paiement, depuis votre espace client, pour une durée illimitée tant que le service existe. Il est personnel : les identifiants ne doivent pas être partagés.'
+                },
+                {
+                    heading: 'Droit de rétractation',
+                    text: 'Pour une formation en ligne, vous demandez l\'accès immédiat au contenu numérique et renoncez expressément à votre droit de rétractation (article L221-28 du Code de la consommation). Pour un séminaire ou un accompagnement réglé par un particulier, vous disposez de 14 jours après le paiement pour vous rétracter, sauf si la prestation a déjà commencé à votre demande. Les professionnels ne bénéficient pas du droit de rétractation.'
+                },
+                {
+                    heading: 'Communauté',
+                    text: 'Chaque formation donne accès à un espace d\'échange. Restez bienveillant, ne partagez aucune donnée de santé ni information personnelle d\'un tiers. La coach peut retirer tout message contraire à ces règles.'
+                },
+                {
+                    heading: 'Nature des prestations',
+                    text: 'Les contenus et prestations relèvent du bien-être et de la prévention. Ils ne constituent ni un diagnostic, ni un traitement médical, et ne remplacent pas l\'avis d\'un professionnel de santé.'
+                },
+                {
+                    heading: 'Réclamations',
+                    text: `Pour toute question ou réclamation : ${brand.email}. En cas de litige, une solution amiable sera recherchée avant toute action.`
+                },
+            ],
+        },
         mentions: {
             title: 'Mentions légales',
             sections: [

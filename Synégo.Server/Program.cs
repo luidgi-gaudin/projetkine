@@ -11,6 +11,7 @@ using Synego.Server.Data;
 using Synego.Server.Documents;
 using Synego.Server.Endpoints;
 using Synego.Server.Notifications;
+using Synego.Server.Payments;
 using Synego.Server.Security;
 
 // Charge le .env (racine de la solution) avant de lire la configuration.
@@ -57,6 +58,13 @@ builder.Services.AddSingleton(builder.Configuration.GetSection(ReminderOptions.S
                            ?? new ReminderOptions());
 builder.Services.AddSingleton<EmailSender>();
 builder.Services.AddHostedService<ReminderService>();
+
+// ---------- Formations et paiements (Stripe : carte, Klarna en plusieurs fois) ----------
+builder.Services.AddSingleton(builder.Configuration.GetSection(StripeOptions.Section).Get<StripeOptions>()
+                           ?? new StripeOptions());
+builder.Services.AddScoped<StripeSettings>();
+builder.Services.AddScoped<StripeGateway>();
+builder.Services.AddScoped<PaymentService>();
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddProblemDetails();
@@ -123,6 +131,9 @@ app.MapTicketEndpoints();
 app.MapAdminEndpoints(app.Configuration);
 app.MapCalendlyAdminEndpoints(app.Configuration);
 app.MapCoachEndpoints(app.Configuration);
+app.MapCourseEndpoints();
+app.MapPaymentEndpoints();
+app.MapAdminLearningEndpoints(app.Configuration);
 
 // Le site React est servi par nginx : ici, toute route inconnue est une 404 JSON.
 app.MapFallback(() => Results.NotFound());

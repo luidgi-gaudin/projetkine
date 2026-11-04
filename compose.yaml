@@ -84,6 +84,8 @@ services:
       Email__Smtp__Security: ${SMTP_SECURITY:-None}
       Email__From: ${EMAIL_FROM:-rendez-vous@synego.fr}
       Email__ReplyTo: ${EMAIL_REPLY_TO:-}
+      Stripe__SecretKey: ${STRIPE_SECRET_KEY:-} # sinon : à relier depuis le back-office (Paiements)
+      Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET:-}
       Booking__Calendly__PersonalAccessToken: ${CALENDLY_TOKEN:-}
       Booking__Calendly__WebhookSigningKey: ${CALENDLY_WEBHOOK_KEY:-}
       Booking__Types__0__CalendlyUrl: ${CALENDLY_URL_AUDIT:-https://calendly.com/votre-compte/audit-seminaire}

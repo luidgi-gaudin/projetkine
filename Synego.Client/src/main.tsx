@@ -14,6 +14,7 @@ import '@fontsource-variable/hanken-grotesk/index.css'
 import './index.css'
 import './styles/site.css'
 import './styles/space.css'
+import './styles/learning.css'
 
 // Thème appliqué avant le premier rendu : pas de flash clair en mode sombre.
 applyTheme(resolveTheme(readPreference()))
