@@ -28,8 +28,8 @@ export function SiteFooter() {
                     <div>
                         <p className="site-footer-title">{t.ui.footerReach}</p>
                         <ul>
-                            <li>{brand.email}</li>
-                            <li>{brand.phone}</li>
+                            <li><a href={`mailto:${brand.email}`}>{brand.email}</a></li>
+                            <li><a href={`tel:${brand.phoneE164}`}>{brand.phone}</a></li>
                             <li>{t.brandText.area}</li>
                         </ul>
                     </div>

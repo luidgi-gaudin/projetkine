@@ -230,7 +230,7 @@ export const en: Dictionary = {
     apropos: {
         eyebrow: 'The approach',
         title: ['The body', 'already knows.', 'We listen.'],
-        intro: `${brand.founder}, ${founderRole.toLowerCase()}, founded Synégo with one conviction: wellbeing at work cannot be decreed, it has to be practised. [To be completed: background, turning point, what led to creating Synégo.]`,
+        intro: `${brand.founder}, ${founderRole.toLowerCase()}, founded Synégo with one conviction: wellbeing at work cannot be decreed, it has to be practised. After ten years working with employees from every walk of life, ${brand.founderFirstName} kept seeing the same signals: stiff necks, shallow breathing, fatigue setting in by Tuesday. Synégo was born from the wish to act earlier, with simple moves anyone can repeat on their own, even behind a screen.`,
         values: [
             {
                 title: 'Simplicity',
@@ -533,12 +533,16 @@ export const en: Dictionary = {
             title: 'Legal notice',
             sections: [
                 {
+                    heading: 'Student project',
+                    text: 'This website was built during a workshop at the ISITECH school. The company Synégo, the people and the contact details mentioned are fictitious: no service is actually offered.'
+                },
+                {
                     heading: 'Publisher',
-                    text: '[Company name], [legal form] with a share capital of €[amount], registered under SIRET number [number], head office at [address]. Publication director: [First Last].'
+                    text: `${brand.company.legalName}, a French simplified joint-stock company (SAS) with a share capital of €${brand.company.capital}, registered with the ${brand.company.rcsCity} Trade and Companies Register under number ${brand.company.siren} (SIRET ${brand.company.siret}), head office at ${brand.company.address}. Publication director: ${brand.founder}. Contact: ${brand.email}, ${brand.phone}.`
                 },
                 {
                     heading: 'Hosting',
-                    text: 'The website is hosted on a virtual private server (VPS) at [hosting provider], [provider address]. Authentication and document storage are provided by Google Firebase (Google Ireland Ltd).'
+                    text: 'The website is hosted on a Linode virtual private server (VPS), a service of Akamai Technologies, Inc., 145 Broadway, Cambridge, MA 02142, United States. Uploaded documents are stored on the same server. Authentication is provided by Google Firebase (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland).'
                 },
                 {
                     heading: 'Nature of services',
@@ -554,6 +558,10 @@ export const en: Dictionary = {
             title: 'Privacy policy',
             sections: [
                 {
+                    heading: 'Data controller',
+                    text: `${brand.company.legalName}, ${brand.company.address}, represented by ${brand.founder}. For any question about your data: ${brand.email}.`
+                },
+                {
                     heading: 'Data collected',
                     text: 'Name, email, phone and company when you fill in a form or create an account; documents you upload to your space; appointment details provided by Calendly. Appointments take place on Google Meet (Google Ireland Ltd): Synégo records nothing there.'
                 },
@@ -567,11 +575,11 @@ export const en: Dictionary = {
                 },
                 {
                     heading: 'Your rights',
-                    text: 'You can access, correct or delete your account at any time from your client space (Profile > Delete my account), or by writing to [contact@synego.fr].'
+                    text: `You can access, correct or delete your account at any time from your client space (Profile > Delete my account), or by writing to ${brand.email}. You may also lodge a complaint with the CNIL, the French data protection authority (cnil.fr).`
                 },
                 {
                     heading: 'Security',
-                    text: 'Encrypted connection (HTTPS), passwords handled by Firebase, documents only accessible to their owner, encrypted daily backups. Service administration is only reachable through a private network (VPN).'
+                    text: 'Encrypted connection (HTTPS), passwords handled by Firebase, documents only accessible to their owner, encrypted daily backups. The back office is restricted to Coach accounts, and the server\'s technical administration tools are not exposed to the internet.'
                 },
                 {
                     heading: 'Cookies',

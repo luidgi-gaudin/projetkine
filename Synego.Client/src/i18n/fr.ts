@@ -3,7 +3,7 @@ import {brand} from './brand'
 /**
  * Textes en français : langue de référence du site.
  * Chaque autre langue (en.ts…) doit avoir exactement la même structure : TypeScript le vérifie.
- * Les éléments entre crochets [ ] sont à compléter avec la cliente.
+ * Projet pédagogique : l'entreprise et ses coordonnées (voir brand.ts) sont fictives.
  */
 
 const founderRole = 'Kinésithérapeute de formation'
@@ -236,7 +236,7 @@ export const fr = {
     apropos: {
         eyebrow: 'L\'approche',
         title: ['Le corps', 'sait déjà.', 'On l\'écoute.'],
-        intro: `${brand.founder}, ${founderRole.toLowerCase()}, a fondé Synégo avec une conviction : le bien-être au travail ne se décrète pas, il se pratique. [À compléter : parcours, déclic, ce qui a mené à créer Synégo.]`,
+        intro: `${brand.founder}, ${founderRole.toLowerCase()}, a fondé Synégo avec une conviction : le bien-être au travail ne se décrète pas, il se pratique. Après dix ans auprès de salariés de tous horizons, ${brand.founderFirstName} voyait revenir les mêmes signaux : nuques raides, souffle court, fatigue qui s'installe dès le mardi. Synégo est née de l'envie d'agir avant, avec des gestes simples que chacun peut refaire seul, même derrière un écran.`,
         values: [
             {
                 title: 'Simplicité',
@@ -541,12 +541,16 @@ export const fr = {
             title: 'Mentions légales',
             sections: [
                 {
+                    heading: 'Projet pédagogique',
+                    text: 'Ce site a été réalisé dans le cadre d\'un atelier de l\'école ISITECH. L\'entreprise Synégo, les personnes et les coordonnées mentionnées sont fictives : aucune prestation n\'est réellement proposée.'
+                },
+                {
                     heading: 'Éditeur',
-                    text: '[Raison sociale], [forme juridique] au capital de [montant] €, immatriculée sous le numéro SIRET [numéro], dont le siège est situé [adresse]. Directeur de la publication : [Prénom Nom].'
+                    text: `${brand.company.legalName}, société par actions simplifiée au capital de ${brand.company.capital} €, immatriculée au RCS de ${brand.company.rcsCity} sous le numéro ${brand.company.siren} (SIRET ${brand.company.siret}), dont le siège est situé ${brand.company.address}. Directrice de la publication : ${brand.founder}. Contact : ${brand.email}, ${brand.phone}.`
                 },
                 {
                     heading: 'Hébergement',
-                    text: 'Le site est hébergé sur un serveur privé virtuel (VPS) chez [hébergeur], [adresse de l\'hébergeur]. L\'authentification et le stockage des documents sont assurés par Google Firebase (Google Ireland Ltd).'
+                    text: 'Le site est hébergé sur un serveur privé virtuel (VPS) Linode, service d\'Akamai Technologies, Inc., 145 Broadway, Cambridge, MA 02142, États-Unis. Les documents déposés sont stockés sur ce même serveur. L\'authentification est assurée par Google Firebase (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irlande).'
                 },
                 {
                     heading: 'Nature des prestations',
@@ -562,6 +566,10 @@ export const fr = {
             title: 'Politique de confidentialité',
             sections: [
                 {
+                    heading: 'Responsable du traitement',
+                    text: `${brand.company.legalName}, ${brand.company.address}, représentée par ${brand.founder}. Pour toute question sur vos données : ${brand.email}.`
+                },
+                {
                     heading: 'Données collectées',
                     text: 'Nom, e-mail, téléphone et entreprise lorsque vous remplissez un formulaire ou créez un compte ; documents que vous déposez dans votre espace ; informations de rendez-vous transmises par Calendly. Les rendez-vous ont lieu sur Google Meet (Google Ireland Ltd) : rien n\'y est enregistré par Synégo.'
                 },
@@ -575,11 +583,11 @@ export const fr = {
                 },
                 {
                     heading: 'Vos droits',
-                    text: 'Vous pouvez accéder à vos données, les corriger ou supprimer votre compte à tout moment depuis votre espace client (Profil > Supprimer mon compte), ou en écrivant à [contact@synego.fr].'
+                    text: `Vous pouvez accéder à vos données, les corriger ou supprimer votre compte à tout moment depuis votre espace client (Profil > Supprimer mon compte), ou en écrivant à ${brand.email}. Vous pouvez aussi introduire une réclamation auprès de la CNIL (cnil.fr).`
                 },
                 {
                     heading: 'Sécurité',
-                    text: 'Connexion chiffrée (HTTPS), mots de passe gérés par Firebase, documents accessibles uniquement à leur propriétaire, sauvegardes chiffrées quotidiennes. L\'administration du service n\'est accessible que par un réseau privé (VPN).'
+                    text: 'Connexion chiffrée (HTTPS), mots de passe gérés par Firebase, documents accessibles uniquement à leur propriétaire, sauvegardes chiffrées quotidiennes. Le back-office est réservé aux comptes Coach, et les outils d\'administration technique du serveur ne sont pas exposés sur Internet.'
                 },
                 {
                     heading: 'Cookies',

@@ -3,7 +3,7 @@ import {HeroDial} from '../../components/brand/Dial'
 import {Reveal, SplitLines} from '../../components/motion/Reveal'
 import {useI18n} from '../../i18n/context'
 
-/** Mentions légales et confidentialité : modèles à compléter avec la cliente. */
+/** Mentions légales et confidentialité (projet pédagogique : données de l'entreprise fictives, voir brand.ts). */
 export function LegalPage({page}: { page: 'mentions' | 'privacy' }) {
     const {t} = useI18n()
     const content = t.legalPages[page]

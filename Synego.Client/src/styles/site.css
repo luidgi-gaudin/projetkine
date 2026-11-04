@@ -1364,6 +1364,14 @@
     font-family: var(--serif);
     font-size: 1.35rem;
     color: var(--text);
+    text-decoration: none;
+    overflow-wrap: break-word;
+    justify-self: start;
+}
+
+.contact-aside-line:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
 }
 
 @media (max-width: 860px) {

@@ -134,8 +134,10 @@ export function ContactPage() {
 
                 <Reveal className="contact-aside">
                     <p className="eyebrow">{t.contactForm.direct}</p>
-                    <p className="contact-aside-line">{brand.email}</p>
-                    <p className="contact-aside-line">{brand.phone}</p>
+                    <a className="contact-aside-line" href={`mailto:${brand.email}`}>
+                        {brand.email.split('@')[0]}@<wbr/>{brand.email.split('@')[1]}
+                    </a>
+                    <a className="contact-aside-line" href={`tel:${brand.phoneE164}`}>{brand.phone}</a>
                     <p>{t.brandText.area}</p>
                 </Reveal>
             </section>
