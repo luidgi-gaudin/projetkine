@@ -25,7 +25,8 @@
 }
 
 .site-main > section,
-.site-main > article {
+.site-main > article,
+.booking > .booking-section {
     padding-inline: var(--gutter);
 }
 
