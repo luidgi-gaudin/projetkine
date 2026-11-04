@@ -31,7 +31,7 @@ services:
     image: synego-nginx
     environment:
       DOMAIN: ${DOMAIN:-localhost}
-      FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-localhost}
+      FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-synego-b3b86.firebaseapp.com}
       ADMIN_BIND_IP: ${ADMIN_BIND_IP:-127.0.0.1}
       HTTPS_PORT: ${HTTPS_PORT:-443}
       ADMIN_VPN_ONLY: ${ADMIN_VPN_ONLY:-false}
@@ -186,4 +186,3 @@ volumes:
   letsencrypt:
   certbot-www:
   uptime-kuma:
-
