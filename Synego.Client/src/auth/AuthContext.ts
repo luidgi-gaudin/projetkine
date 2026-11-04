@@ -56,7 +56,9 @@ export function displayNameOf(user: User | null, profile: Profile | null): strin
 /** Traduit un code d'erreur Firebase en phrase compréhensible (et indique quoi faire). */
 export function authErrorMessage(err: unknown, errors: Record<string, string>): string {
     const code = err && typeof err === 'object' && 'code' in err ? String((err as { code: unknown }).code) : ''
-    if (code) console.warn('[auth]', code, err)
+    if (code && code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
+        console.warn('[auth]', code, err)
+    }
     const alias: Record<string, string> = {
         'auth/user-not-found': 'auth/invalid-credential',
         'auth/wrong-password': 'auth/invalid-credential',
