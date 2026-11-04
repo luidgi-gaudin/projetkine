@@ -88,7 +88,7 @@
 
   <rect class="res" x="290" y="460" width="180" height="76" rx="10"/>
   <text x="380" y="488" class="t" text-anchor="middle">Supervision Zabbix</text>
-  <text x="380" y="506" class="s" text-anchor="middle">équipe Réseau</text>
+  <text x="380" y="506" class="s" text-anchor="middle">pôle Réseau</text>
   <text x="380" y="522" class="s" text-anchor="middle">servie sur :8443 par nginx</text>
 
   <rect class="box" x="750" y="190" width="200" height="44" rx="9"/>

@@ -423,7 +423,7 @@ bash deploy/vps/wg-add-peer.sh gerante 10.8.0.2     <span class="c"># profil + Q
     <li><code>/api/health</code> répond <code>{"status":"ok","database":true,"documents":true}</code>, ou 503 dès que la base ou le stockage ne répond plus.</li>
     <li>Uptime Kuma : moniteur « HTTP(s) – mot-clé » sur <code>https://DOMAINE/api/health</code> (mot-clé <code>"ok"</code>, 60 s), moniteur de
         certificat (alerte à 14 jours), notification e-mail, Telegram ou Discord.</li>
-    <li>Zabbix (équipe Réseau) : supervision de l'hôte, interface sur le port 8443.</li>
+    <li>Zabbix (pôle Réseau) : supervision de l'hôte, interface sur le port 8443.</li>
 </ul>
 <h3>Sauvegardes et test de restauration</h3>
 <p>Chaque nuit à 2 h et avant chaque déploiement : <code>pg_dump</code> du schéma <code>synego</code> au format custom, chiffré AES-256 (<code>BACKUP_PASSPHRASE</code>),
@@ -481,7 +481,7 @@ docker compose exec -T db psql -U postgres -c "drop database synego_restore_test
     <tr><td>Pas de SMTP réel en production</td><td>Compte SMTP (par exemple Brevo), SPF et DKIM du domaine</td></tr>
     <tr><td>Calendly non relié en production</td><td>La coach colle son jeton depuis le back-office, durées alignées sur les textes</td></tr>
     <tr><td>Adresse <code>sslip.io</code> bloquée par certains filtres (« Dynamic DNS »)</td><td>Nom de domaine dédié</td></tr>
-    <tr><td>Deux tâches planifiées de l'équipe Réseau visent l'ancien dossier</td><td>Les retirer (le service a ses propres sauvegarde et renouvellement)</td></tr>
+    <tr><td>Deux tâches planifiées du pôle Réseau visent l'ancien dossier</td><td>Les retirer (le service a ses propres sauvegarde et renouvellement)</td></tr>
     <tr><td>Domaine <code>synego.duckdns.org</code> non autorisé dans Firebase</td><td>L'ajouter (Firebase et restriction de la clé) si ce domaine doit servir à la connexion</td></tr>
     </tbody>
 </table>

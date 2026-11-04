@@ -30,7 +30,7 @@
         <dt>Sprint</dt><dd>Sprint 1 · du lundi 2 au jeudi 5 novembre 2026</dd>
         <dt>Service</dt><dd>https://172-239-9-200.sslip.io</dd>
         <dt>Code</dt><dd>github.com/luidgi-gaudin/projetkine</dd>
-        <dt>Équipe</dt><dd>Équipe mixte Développement + Réseau (composition en partie 02)</dd>
+        <dt>Équipe</dt><dd>Luidgi GAUDIN (PO), Victor (Scrum Master), Nayir, Céline, Azzouz, Nathan · 3 Dev, 3 Réseau</dd>
         <dt>Version</dt><dd>4 novembre 2026, avant la Sprint Review</dd>
     </dl>
 </section>
@@ -104,14 +104,14 @@
 <table>
     <thead><tr><th style="width:24%">Rôle</th><th style="width:30%">Qui</th><th>Engagement</th></tr></thead>
     <tbody>
-    <tr><td><strong>Product Owner</strong></td><td><span class="fill">à compléter</span></td>
+    <tr><td><strong>Product Owner</strong></td><td>Luidgi GAUDIN <span class="tag dev">Dev</span></td>
         <td>Seul interlocuteur du client, du briefing à la Sprint Review. Parle valeur, jamais technique.
             Priorise le backlog.</td></tr>
-    <tr><td><strong>Scrum Master</strong></td><td><span class="fill">à compléter</span></td>
+    <tr><td><strong>Scrum Master</strong></td><td>Victor <span class="tag res">Réseau</span></td>
         <td>Garant du processus. Trace chaque obstacle dans Trello (carte rouge « Obstacle »), en particulier
             quand un profil Dev attend un profil Réseau, ou l'inverse.</td></tr>
-    <tr><td><strong>Équipe de développement</strong></td><td>Luidgi GAUDIN, <span class="fill">à compléter</span></td>
-        <td>Profils Dev et Réseau ensemble sur chaque story : aucune story « par discipline ».</td></tr>
+    <tr><td><strong>Équipe de développement</strong></td><td><span class="tag dev">Dev</span> Nayir, Céline, Luidgi<br><span class="tag res">Réseau</span> Azzouz, Nathan, Victor</td>
+        <td>Profils Dev et Réseau ensemble sur chaque story : aucune story « par discipline ». Le PO et le SM réalisent aussi.</td></tr>
     </tbody>
 </table>
 
@@ -241,7 +241,7 @@
     <li>Développement des stories prioritaires : site vitrine, réservation, connexion, espace client, back-office.</li>
     <li>Réunion client/PO : <strong>plusieurs changements de besoin</strong> (détaillés en partie 05) — notamment
         le retrait du VPN pour la coach, le travail 100 % à distance, les rappels par e-mail, les notes sur les clients.</li>
-    <li>Côté Réseau : VPS Linode préparé (pare-feu UFW, domaine <code>synego.duckdns.org</code>, certificat,
+    <li>Pôle Réseau (Victor, Azzouz, Nathan) : VPS Linode préparé (pare-feu UFW, domaine <code>synego.duckdns.org</code>, certificat,
         supervision <strong>Zabbix</strong>, script de sauvegarde).</li>
     <li>Soirée : pipeline CI/CD complet et déploiement automatique ; premier passage de la CI <strong>rouge</strong>
         (des fichiers manquaient dans le dépôt), corrigé dans l'heure ; installation en production sur le VPS.</li>
@@ -249,7 +249,7 @@
 
 <h3>Jour 3 · mercredi 4 novembre : Adaptation et inspection</h3>
 <ul>
-    <li>Cohabitation du service avec l'infrastructure de l'équipe Réseau sur le même serveur (partie 06).</li>
+    <li>Cohabitation du service avec l'infrastructure préparée par le pôle Réseau sur le même serveur (partie 06).</li>
     <li><strong>Urgence sécurité</strong> : clé d'accès Google signalée publique par GitHub, avec des tentatives
         d'utilisation par des tiers. Restreinte, remplacée, l'ancienne supprimée (partie 06).</li>
     <li>Contenu demandé par le client : mentions légales, confidentialité et coordonnées <strong>fictives</strong>
@@ -330,19 +330,19 @@
     </tbody>
 </table>
 
-<h3>2. Le serveur était déjà occupé par l'équipe Réseau <span class="tag part">Obstacle</span></h3>
+<h3>2. Le serveur était déjà occupé par le travail du pôle Réseau <span class="tag part">Obstacle</span></h3>
 <table class="compact">
     <tbody>
     <tr><td style="width:18%"><strong>Repéré</strong></td><td>À l'installation, le dossier du service existait déjà sur le VPS, avec une autre
-        configuration : un squelette préparé par l'équipe Réseau (nginx, certificat pour <code>synego.duckdns.org</code>,
+        configuration : un squelette préparé par le pôle Réseau (nginx, certificat pour <code>synego.duckdns.org</code>,
         application de démonstration, base de test) et la supervision <strong>Zabbix</strong> servie par ce nginx sur le port 8443.</td></tr>
     <tr><td><strong>Cause</strong></td><td>Le travail Dev et Réseau a avancé en parallèle sans inventaire partagé du serveur : exactement
         le piège « chaque profil dans son coin » décrit dans le sujet.</td></tr>
     <tr><td><strong>Traité</strong></td><td>Rien n'a été supprimé : l'ancien dossier a été mis de côté, la configuration étrangère écartée.
         Le nginx du service reprend le rôle de l'ancien et continue de servir Zabbix sur 8443 ; le certificat
         couvre les deux adresses. Vérifié après coup : Zabbix répond toujours.</td></tr>
-    <tr><td><strong>Reste à faire</strong></td><td>Deux tâches planifiées de l'équipe Réseau (sauvegarde et renouvellement du certificat) visent encore
-        l'ancien dossier : elles échouent sans dégât. À retirer par l'équipe Réseau, le service ayant les siennes.</td></tr>
+    <tr><td><strong>Reste à faire</strong></td><td>Deux tâches planifiées du pôle Réseau (sauvegarde et renouvellement du certificat) visent encore
+        l'ancien dossier : elles échouent sans dégât. À retirer par le pôle Réseau, le service ayant les siennes.</td></tr>
     <tr><td><strong>Dit au client</strong></td><td><em>« Les deux moitiés de l'équipe ont relié leur travail sur le même serveur : votre site et
         l'outil de surveillance tournent ensemble. »</em></td></tr>
     </tbody>
@@ -407,7 +407,7 @@
         <td>Aucune demande perdue dans une boîte mail.</td><td><span class="tag ok">Fait</span></td></tr>
     <tr><td><strong>Surveillance</strong> (DoD)</td>
         <td>Point de santé <code>/api/health</code> (base + stockage), Uptime Kuma déployé (accès par tunnel), supervision
-            Zabbix de l'équipe Réseau, CI qui bloque toute version cassée.</td>
+            Zabbix du pôle Réseau, CI qui bloque toute version cassée.</td>
         <td>On est prévenu avant les clients.</td><td><span class="tag part">Partiel</span></td></tr>
     </tbody>
 </table>
@@ -511,7 +511,7 @@ https://…/api/admin/overview   <span class="ko">401</span></pre>
     <tbody>
     <tr><td>Internet</td><td>nginx</td><td>80, 443</td><td><span class="tag ok">Oui</span></td><td>Site et API publics (80 redirige vers 443)</td></tr>
     <tr><td>Internet</td><td>Back-office <code>/admin</code></td><td>443</td><td><span class="tag ok">Oui</span></td><td>Après connexion et rôle Coach vérifié en base</td></tr>
-    <tr><td>Internet</td><td>Zabbix (équipe Réseau)</td><td>8443</td><td><span class="tag ok">Oui</span></td><td>Interface de supervision, avec son propre compte</td></tr>
+    <tr><td>Internet</td><td>Zabbix (pôle Réseau)</td><td>8443</td><td><span class="tag ok">Oui</span></td><td>Interface de supervision, avec son propre compte</td></tr>
     <tr><td>Internet</td><td>SSH</td><td>22</td><td><span class="tag ok">Oui</span></td><td>Administration par l'équipe (clé)</td></tr>
     <tr><td>Internet</td><td>PostgreSQL, Adminer, Uptime Kuma, Mailpit, zone admin</td><td>5432, 8082, 3001, 8025, 8444</td><td><span class="tag todo">Non</span></td><td>Écoutent sur 127.0.0.1 : tunnel SSH obligatoire</td></tr>
     <tr><td>nginx</td><td>API</td><td>8080 (Docker)</td><td><span class="tag ok">Oui</span></td><td>Seul point d'entrée de l'API</td></tr>
@@ -555,8 +555,7 @@ https://…/api/admin/overview   <span class="ko">401</span></pre>
 
 <!-- ===================================================================== -->
 <h2 class="chapter">Rétrospective</h2>
-<p class="lead">Préparée à partir des faits du sprint, à compléter et valider en équipe jeudi (sans le client), puis
-    postée sur Trello.</p>
+<p class="lead">Préparée à partir des faits du sprint, à valider en équipe jeudi puis postée sur Trello.</p>
 <div class="grid3">
     <div class="card"><h4>Start</h4><ul class="small">
         <li>Un <strong>inventaire partagé du serveur</strong> (qui installe quoi, où, sur quel port) dès le jour 1.</li>
@@ -578,9 +577,10 @@ https://…/api/admin/overview   <span class="ko">401</span></pre>
 <table class="compact">
     <thead><tr><th style="width:50%">Ce qui a marché</th><th>Ce qui a bloqué</th></tr></thead>
     <tbody><tr>
-        <td><ul class="small"><li>Le serveur, le domaine, le certificat et la supervision Zabbix étaient prêts quand le service est arrivé.</li>
+        <td><ul class="small"><li>Une équipe équilibrée : 3 Dev, 3 Réseau ; le PO côté Dev, le Scrum Master côté Réseau.</li>
+            <li>Le serveur, le domaine, le certificat et la supervision Zabbix étaient prêts quand le service est arrivé.</li>
             <li>La cohabitation a été réglée sans rien supprimer : Zabbix tourne derrière le nginx du service.</li>
-            <li>Le cadre imposé (accès privé) a servi d'argument commun pour négocier avec le client.</li></ul></td>
+            <li>Le cadre imposé (accès privé) a servi d'argument commun face au client.</li></ul></td>
         <td><ul class="small"><li>Le déploiement a d'abord échoué faute de savoir ce qui existait déjà sur le serveur.</li>
             <li>Deux tâches planifiées Réseau visent maintenant un dossier déplacé.</li>
             <li>Le VPN WireGuard n'a pas été activé : l'accès privé repose sur le tunnel SSH.</li></ul></td>
@@ -589,13 +589,13 @@ https://…/api/admin/overview   <span class="ko">401</span></pre>
 
 <h3>Actions concrètes</h3>
 <table class="compact">
-    <thead><tr><th>Action</th><th>Qui</th><th>Quand</th></tr></thead>
+    <thead><tr><th>Action</th><th style="width:19%">Qui</th><th style="width:15%">Quand</th></tr></thead>
     <tbody>
-    <tr><td>Configurer et tester l'alerte (Uptime Kuma ou Zabbix) sur <code>/api/health</code>, notification sur téléphone</td><td>Réseau + Dev</td><td>jeudi matin</td></tr>
-    <tr><td>Retirer les deux tâches planifiées obsolètes ; tenir l'inventaire du serveur dans le dépôt</td><td>Réseau</td><td>jeudi matin</td></tr>
-    <tr><td>Relier Calendly depuis le back-office, aligner les durées des événements</td><td>PO avec la coach</td><td>avant la démo</td></tr>
-    <tr><td>Passer SSH en clé uniquement, changer le mot de passe root</td><td>Réseau</td><td>sprint suivant</td></tr>
-    <tr><td>Sauvegardes copiées hors du VPS ; vrai nom de domaine (non filtré « Dynamic DNS ») ; SMTP réel pour les rappels</td><td>Réseau, Dev, PO</td><td>sprint suivant</td></tr>
+    <tr><td>Configurer et tester l'alerte sur <code>/api/health</code> (Kuma ou Zabbix), sur téléphone</td><td>Réseau + Dev</td><td style="white-space:nowrap">jeudi matin</td></tr>
+    <tr><td>Retirer les tâches planifiées obsolètes, inventaire du serveur dans le dépôt</td><td>Réseau</td><td style="white-space:nowrap">jeudi matin</td></tr>
+    <tr><td>Relier Calendly avec la coach, aligner les durées des événements</td><td>Luidgi (PO)</td><td style="white-space:nowrap">avant la démo</td></tr>
+    <tr><td>Passer SSH en clé uniquement, changer le mot de passe root</td><td>Réseau</td><td style="white-space:nowrap">sprint suivant</td></tr>
+    <tr><td>Sauvegardes hors du VPS, vrai nom de domaine, SMTP réel pour les rappels</td><td>Réseau, Dev, PO</td><td style="white-space:nowrap">sprint suivant</td></tr>
     </tbody>
 </table>
 
