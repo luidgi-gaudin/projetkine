@@ -561,6 +561,7 @@ export const en: Dictionary = {
         receipt: 'View receipt',
         expired: 'This link is no longer valid. Write to us to get a new one.',
         canceled: 'This link has been cancelled.',
+        paymentsOff: 'Online payment is not enabled yet: write to us to arrange payment.',
         notFound: 'Payment link not found. Check the address you received by email.',
         kind: {Course: 'Course', Seminar: 'Seminar', Other: 'Coaching'} as Record<string, string>,
         returnTitle: 'Thank you, all paid.',

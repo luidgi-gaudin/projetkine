@@ -223,6 +223,25 @@
     justify-content: center;
 }
 
+.course-buy .eyebrow {
+    margin: 0;
+}
+
+.course-buy .check-list {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0;
+}
+
+.course-detail .lede {
+    margin-bottom: 1.4rem;
+}
+
+.pay-installments {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+}
+
 .terms-check {
     display: flex;
     align-items: flex-start;

@@ -569,6 +569,7 @@ export const fr = {
         receipt: 'Voir le reçu',
         expired: 'Ce lien n\'est plus valable. Écrivez-nous pour en recevoir un nouveau.',
         canceled: 'Ce lien a été annulé.',
+        paymentsOff: 'Le paiement en ligne n\'est pas encore activé : écrivez-nous pour convenir du règlement.',
         notFound: 'Lien de paiement introuvable. Vérifiez l\'adresse reçue par e-mail.',
         kind: {Course: 'Formation', Seminar: 'Séminaire', Other: 'Accompagnement'} as Record<string, string>,
         returnTitle: 'Merci, c\'est réglé.',

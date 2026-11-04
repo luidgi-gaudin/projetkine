@@ -15,6 +15,7 @@ import {useI18n} from '../../i18n/context'
 /** Catalogue public des formations (prix affichés, paiement comptant ou en 3 fois). */
 export function FormationsPage() {
     const {t, locale, format} = useI18n()
+    const contact = t.nav.find((n) => n.to === '/contact')?.label
     const {data, error} = useResource<CourseCard[]>('/courses')
 
     return (
@@ -24,7 +25,7 @@ export function FormationsPage() {
                 {error && <p className="notice notice-error">{t.booking.unavailable}</p>}
                 {!data && !error && <DialLoader/>}
                 {data?.length === 0 && (
-                    <p className="notice">{t.formations.empty} <Link to="/contact">{t.ui.footerReach}</Link></p>
+                    <p className="notice">{t.formations.empty} <Link to="/contact">{contact}</Link></p>
                 )}
                 {data && data.length > 0 && (
                     <div className="course-grid">
@@ -61,6 +62,7 @@ export function FormationsPage() {
 export function FormationDetailPage() {
     const {slug} = useParams()
     const {t, locale, format} = useI18n()
+    const contact = t.nav.find((n) => n.to === '/contact')?.label
     const {user} = useAuth()
     const navigate = useNavigate()
     const location = useLocation()
@@ -174,7 +176,7 @@ export function FormationDetailPage() {
                             </Link>
                         ) : !course.paymentsEnabled ? (
                             <p className="notice">{t.formations.paymentsOff} <Link
-                                to="/contact">{t.ui.footerReach}</Link></p>
+                                to="/contact">{contact}</Link></p>
                         ) : (
                             <>
                                 {user && <TermsCheckbox checked={accepted} onChange={setAccepted}/>}

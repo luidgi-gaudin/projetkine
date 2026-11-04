@@ -62,7 +62,7 @@ export function PaymentLinkPage() {
             <div className="pay-summary">
                 <span className="pay-label">{data.label}</span>
                 <strong className="pay-amount">{amount}</strong>
-                <span className="row-meta">{t.formations.installments}</span>
+                <span className="pay-installments">{t.formations.installments}</span>
             </div>
             {data.status === 'Paid' ? (
                 <>
@@ -73,9 +73,9 @@ export function PaymentLinkPage() {
             ) : data.status === 'Canceled' || data.status === 'Refunded' ? (
                 <p className="notice">{t.payment.canceled}</p>
             ) : data.expired ? (
-                <p className="notice">{t.payment.expired} <Link to="/contact">{t.ui.footerReach}</Link></p>
+                <p className="notice">{t.payment.expired} <Link to="/contact">Contact</Link></p>
             ) : !data.paymentsEnabled ? (
-                <p className="notice">{t.formations.paymentsOff}</p>
+                <p className="notice">{t.payment.paymentsOff} <Link to="/contact">Contact</Link></p>
             ) : (
                 <>
                     <TermsCheckbox checked={accepted} onChange={setAccepted}/>
@@ -120,7 +120,7 @@ export function PaymentReturnPage() {
         return (
             <PaymentShell>
                 <p className="notice">{t.payment.returnUnknown}</p>
-                <Link to="/contact" className="btn btn-ink">{t.ui.footerReach}</Link>
+                <Link to="/contact" className="btn btn-ink">Contact</Link>
             </PaymentShell>
         )
     }
