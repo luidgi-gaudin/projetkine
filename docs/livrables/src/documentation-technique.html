@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Synégo · Documentation technique</title>
+<link rel="stylesheet" href="livrable.css">
+<style>@page { @bottom-left { content: "Synégo · Documentation technique"; } }</style>
+</head>
+<body>
+
+<section class="cover">
+    <div class="cover-brand">
+        <svg viewBox="0 0 100 100" width="50" height="50" aria-hidden="true">
+            <circle cx="50" cy="50" r="44" fill="none" stroke="#f2e8dc" stroke-width="3.2"/>
+            <path d="M50 8.5v5M50 86.5v5M8.5 50h5M86.5 50h5M29.3 14.1l2.5 4.3M68.2 81.6l2.5 4.3M14.1 29.3l4.3 2.5M81.6 68.2l4.3 2.5M14.1 70.7l4.3-2.5M81.6 31.8l4.3-2.5M29.3 85.9l2.5-4.3M68.2 18.4l2.5-4.3" stroke="#f2e8dc" stroke-width="3.2"/>
+            <polygon fill="#d0e7f5" points="32,44 68,44 78.6,54.8 50,88 21.4,54.8"/>
+            <polygon fill="#9fc6de" points="32,44 50,44 38,54.8"/><polygon fill="#9fc6de" points="50,44 68,44 62,54.8"/>
+            <polygon fill="#9fc6de" points="21.4,54.8 38,54.8 50,88"/><polygon fill="#9fc6de" points="50,54.8 62,54.8 50,88"/>
+            <path d="M32 44H68L78.6 54.8 50 88 21.4 54.8Z M21.4 54.8H78.6 M32 44 38 54.8 50 44 62 54.8 68 44 M38 54.8 50 88 M62 54.8 50 88" fill="none" stroke="#0a1d35" stroke-width="3.2" stroke-linejoin="round"/>
+            <path d="M50 21 51.1 31.9 65 33 51.1 34.1 50 42 48.9 34.1 35 33 48.9 31.9Z" fill="#d9c9b4"/>
+        </svg>
+        Synégo
+    </div>
+    <p class="cover-kicker">Architecture · installation · exploitation</p>
+    <h1>Documentation<br><em>technique</em></h1>
+    <p class="cover-lead">Pour l'équipe qui développe, déploie et maintient le service : architecture, code,
+        base de données, configuration, chaîne CI/CD, installation d'un serveur, exploitation et procédures d'urgence.</p>
+    <dl class="cover-meta">
+        <dt>Dépôt</dt><dd>github.com/luidgi-gaudin/projetkine · branche main</dd>
+        <dt>Production</dt><dd>VPS Linode 172.239.9.200 · https://172-239-9-200.sslip.io</dd>
+        <dt>Pile</dt><dd>.NET 10 · React 19 · PostgreSQL 17 · nginx · Docker Compose</dd>
+        <dt>Version</dt><dd>4 novembre 2026 · commit f827ae3 en production</dd>
+    </dl>
+</section>
+
+<section class="toc">
+    <h2>Sommaire</h2>
+    <ol>
+        <li>Vue d'ensemble <span>pile technique, organisation du dépôt</span></li>
+        <li>Architecture <span>schéma, conteneurs, flux</span></li>
+        <li>Réseau et sécurité <span>ports, TLS, en-têtes, secrets, rôles</span></li>
+        <li>API .NET <span>authentification, routes, services de fond</span></li>
+        <li>Base de données <span>comptes, tables, migrations</span></li>
+        <li>Front-end React <span>structure, routes, i18n, thème, Firebase</span></li>
+        <li>Configuration <span>référence du fichier .env</span></li>
+        <li>Développer en local <span>stack de dev, stack de prod locale</span></li>
+        <li>Intégration et déploiement continus <span>GitHub Actions, déploiement par pull</span></li>
+        <li>Installer un serveur <span>install.sh, durcissement, cohabitation Zabbix</span></li>
+        <li>Exploitation <span>commandes, tunnels, sauvegardes, rotation de clé</span></li>
+        <li>Procédures d'urgence <span>repérer, traiter, dire</span></li>
+        <li>Qualité et limites connues <span>tests, contrôles, reste à faire</span></li>
+    </ol>
+</section>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Vue d'ensemble</h2>
+<p class="lead">Synégo est un monorepo : une API ASP.NET Core, un front React servi par nginx, et l'infrastructure
+    (Docker Compose, scripts serveur, CI) versionnée au même endroit. Tout tourne en conteneurs, en développement comme en production.</p>
+<h3>Pile technique</h3>
+<table class="compact">
+    <thead><tr><th style="width:20%">Couche</th><th style="width:38%">Technologie</th><th>Rôle</th></tr></thead>
+    <tbody>
+    <tr><td>API</td><td>.NET 10, Minimal API, EF Core 10 + Npgsql 10.0.3</td><td>Logique métier, contrôle d'accès, intégrations</td></tr>
+    <tr><td>Authentification</td><td>Firebase Auth (@firebase/auth 1.13.9) + JwtBearer 10.0.14</td><td>E-mail, SMS, Google ; l'API vérifie les jetons</td></tr>
+    <tr><td>Front</td><td>React 19.3, React Router 8.5, TypeScript 6.0, Vite 8.3</td><td>Site vitrine, espace client, back-office</td></tr>
+    <tr><td>Animations</td><td>motion 14.3 (<code>motion/react</code>), Lenis 1.3</td><td>Animations, défilement doux (coupés si mouvement réduit)</td></tr>
+    <tr><td>Base de données</td><td>PostgreSQL 17 (alpine)</td><td>Schéma <code>synego</code>, comptes séparés</td></tr>
+    <tr><td>Web</td><td>nginx 1.27 (alpine)</td><td>TLS, CSP, limite de débit, proxy <code>/api</code>, fichiers statiques</td></tr>
+    <tr><td>E-mails</td><td>MailKit 4.18 (SMTP), Mailpit en démo</td><td>Rappels de rendez-vous 48 h / 24 h</td></tr>
+    <tr><td>Rendez-vous</td><td>Calendly API v2 + webhooks</td><td>Réservation, annulation, lien Meet</td></tr>
+    <tr><td>Stockage documents</td><td>Disque du serveur (défaut) ou Firebase Storage</td><td>Fichiers clients, servis uniquement par l'API</td></tr>
+    <tr><td>Exploitation</td><td>Docker Compose, systemd, certbot 3.1, Uptime Kuma 1.23, Adminer 4.8</td><td>Déploiement, certificats, surveillance</td></tr>
+    <tr><td>CI</td><td>GitHub Actions</td><td>Build, tests, migrations, audit, démarrage de la stack</td></tr>
+    </tbody>
+</table>
+<h3>Organisation du dépôt</h3>
+<table class="compact">
+    <thead><tr><th style="width:32%">Chemin</th><th>Contenu</th></tr></thead>
+    <tbody>
+    <tr><td><code>Synégo.Server/</code></td><td>API : <code>Authentication</code>, <code>Booking</code> (Calendly), <code>Data</code> (entités, migrations), <code>Documents</code>, <code>Endpoints</code>, <code>Notifications</code>, <code>Security</code>, <code>Program.cs</code></td></tr>
+    <tr><td><code>Synego.Client/</code></td><td>Front : <code>src/pages</code> (site, auth, espace, admin), <code>src/components</code>, <code>src/i18n</code>, <code>src/theme</code>, <code>src/auth</code>, <code>src/styles</code></td></tr>
+    <tr><td><code>tests/Synego.Server.Tests/</code></td><td>Tests xUnit de l'API</td></tr>
+    <tr><td><code>compose.yaml</code>, <code>compose.dev.yaml</code></td><td>Stack de production, surcouche de développement</td></tr>
+    <tr><td><code>synego.sh</code></td><td>Lanceur Docker (init du <code>.env</code>, contournement des chemins accentués)</td></tr>
+    <tr><td><code>deploy/api</code>, <code>deploy/nginx</code>, <code>deploy/backup</code>, <code>deploy/postgres</code></td><td>Dockerfiles, gabarits nginx, scripts de sauvegarde, rôles PostgreSQL</td></tr>
+    <tr><td><code>deploy/vps/</code></td><td><code>install.sh</code>, <code>synego-deploy.sh</code> + unités systemd, durcissement, WireGuard</td></tr>
+    <tr><td><code>.github/workflows/ci.yml</code></td><td>Pipeline d'intégration continue</td></tr>
+    <tr><td><code>docs/</code></td><td>Architecture, déploiement, kit Scrum (backlog, urgences, démo), livrables PDF</td></tr>
+    <tr><td><code>scripts/trello_import.py</code></td><td>Création du tableau Trello à partir de <code>docs/scrum/backlog.json</code></td></tr>
+    </tbody>
+</table>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Architecture</h2>
+<figure class="diagram"><!--include:architecture.svg--><figcaption>Architecture en production (4 novembre 2026).</figcaption></figure>
+<h3>Conteneurs (projet Compose <code>synego</code>)</h3>
+<table class="compact">
+    <thead><tr><th style="width:14%">Service</th><th style="width:24%">Image</th><th>Rôle</th><th style="width:22%">Ports publiés</th></tr></thead>
+    <tbody>
+    <tr><td><code>nginx</code></td><td><code>synego-nginx</code> (build)</td><td>Front compilé, TLS, en-têtes, proxy <code>/api</code>, zone admin</td><td>80, 443 ; <code>ADMIN_BIND_IP:ADMIN_PORT</code> → 8081</td></tr>
+    <tr><td><code>api</code></td><td><code>synego-api</code> (build)</td><td>API .NET, services de fond (rappels, purge)</td><td>aucun (réseau Docker)</td></tr>
+    <tr><td><code>migrate</code></td><td><code>synego-api</code></td><td>Applique les migrations EF avec <code>synego_owner</code>, puis s'arrête</td><td>aucun</td></tr>
+    <tr><td><code>db</code></td><td><code>postgres:17-alpine</code></td><td>Base de données, rôles créés au premier démarrage</td><td>aucun</td></tr>
+    <tr><td><code>backup</code></td><td><code>synego-backup</code> (build)</td><td>pg_dump chiffré selon <code>BACKUP_CRON</code>, <code>restore.sh</code></td><td>aucun</td></tr>
+    <tr><td><code>certbot</code></td><td><code>certbot/certbot:v3.1.0</code></td><td><code>certbot renew</code> toutes les 12 h (webroot)</td><td>aucun</td></tr>
+    <tr><td><code>adminer</code></td><td><code>adminer:4.8.1</code></td><td>Consultation de la base</td><td><code>ADMIN_BIND_IP:8082</code></td></tr>
+    <tr><td><code>mailpit</code></td><td><code>axllent/mailpit:v1.27</code></td><td>Boîte e-mail de démonstration (SMTP par défaut)</td><td><code>ADMIN_BIND_IP:8025</code></td></tr>
+    <tr><td><code>uptime-kuma</code></td><td><code>louislam/uptime-kuma:1.23.16</code></td><td>Surveillance et alertes</td><td><code>ADMIN_BIND_IP:3001</code></td></tr>
+    </tbody>
+</table>
+<p class="small">Volumes : <code>pgdata</code> (base), <code>appdata</code> (documents en mode Local et clés Data Protection),
+    <code>letsencrypt</code>, <code>certbot-www</code>, <code>uptime-kuma</code> ; dossier <code>./backups</code> pour les sauvegardes.
+    En production, <code>ADMIN_BIND_IP=127.0.0.1</code>.</p>
+<h3>Parcours d'une requête</h3>
+<ol class="steps">
+    <li>Le navigateur charge le front depuis nginx (HTTPS). Il se connecte directement à Firebase Auth, qui lui remet un jeton d'identité.</li>
+    <li>Chaque appel <code>/api/…</code> porte ce jeton (<code>Authorization: Bearer</code>). nginx limite le débit puis relaie vers l'API.</li>
+    <li>L'API vérifie la signature du jeton auprès de Google (<code>securetoken.google.com/&lt;projet&gt;</code>), retrouve ou crée le compte
+        en base, et lit le <strong>rôle en base</strong> (jamais dans le jeton).</li>
+    <li>Les rendez-vous sont pris dans l'iframe Calendly ; le front confirme la réservation à l'API, qui la relit chez Calendly
+        (et le webhook la synchronise sur une offre payante).</li>
+</ol>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Réseau et sécurité</h2>
+<h3>Ports et pare-feu</h3>
+<table class="compact">
+    <thead><tr><th>Port</th><th>Écoute</th><th>Service</th><th>Accès</th></tr></thead>
+    <tbody>
+    <tr><td>22/tcp</td><td>hôte</td><td>SSH</td><td>Internet (UFW), équipe uniquement</td></tr>
+    <tr><td>80, 443/tcp</td><td>0.0.0.0</td><td>nginx (site, API, ACME)</td><td>Internet</td></tr>
+    <tr><td>8443/tcp</td><td>0.0.0.0</td><td>nginx → <code>zabbix-web</code> (surcouche locale)</td><td>Internet, compte Zabbix</td></tr>
+    <tr><td>51820/udp</td><td>hôte</td><td>WireGuard (prêt, non activé)</td><td>Internet, clé obligatoire</td></tr>
+    <tr><td>8444, 8082, 3001, 8025</td><td>127.0.0.1</td><td>zone admin, Adminer, Uptime Kuma, Mailpit</td><td>tunnel SSH uniquement</td></tr>
+    <tr><td>5432, 8080</td><td>réseau Docker</td><td>PostgreSQL, API</td><td>jamais exposés</td></tr>
+    </tbody>
+</table>
+<div class="callout warn"><span class="callout-title">Docker contourne UFW</span>
+    <p class="small">Un port publié par Docker est ouvert même si UFW le refuse. Règle du projet : ne publier que 80, 443 (et 8443 pour Zabbix)
+        sur toutes les interfaces ; tout autre port est lié à <code>${ADMIN_BIND_IP}</code> dans <code>compose.yaml</code>.</p></div>
+
+<h3>TLS et en-têtes</h3>
+<ul>
+    <li>Certificat Let's Encrypt obtenu par <code>install.sh</code> (webroot), renouvelé par le conteneur <code>certbot</code> ; nginx recharge
+        les certificats toutes les 12 h (<code>synego-reload-certs</code>). Sans certificat, un auto-signé temporaire permet de démarrer.</li>
+    <li><code>EXTRA_DOMAINS</code> ajoute d'autres noms au même certificat (production : <code>synego.duckdns.org</code>).</li>
+    <li>En-têtes : CSP stricte (sources : soi-même, Google pour l'authentification et reCAPTCHA, Calendly), HSTS, <code>X-Frame-Options</code>,
+        <code>nosniff</code>. <code>font-src 'self'</code> : aucune police en <code>data:</code> (Vite configuré pour ne jamais les intégrer).</li>
+    <li>Limite de débit : 10 req/s par IP sur <code>/api</code> (rafale 40) côté nginx ; 10 envois par 10 minutes et par IP sur les formulaires publics côté API.</li>
+</ul>
+
+<h3>Authentification et rôles</h3>
+<ul>
+    <li>JwtBearer valide l'émetteur, l'audience (<code>Firebase__ProjectId</code>) et la signature des jetons Firebase.</li>
+    <li>Un <code>IClaimsTransformation</code> (<code>UserProvisioning</code>) crée le compte applicatif à la première requête et ajoute le rôle lu en base :
+        <strong>Prospect</strong>, <strong>Client</strong> (signé) ou <strong>Coach</strong>.</li>
+    <li>Les e-mails de <code>Admin__Emails</code> deviennent Coach uniquement si l'adresse est <strong>vérifiée</strong> par Firebase.
+        Un coach peut en nommer d'autres (invitations) mais pas se retirer lui-même.</li>
+    <li>Back-office : politique « Coach ». Option <code>ADMIN_VPN_ONLY=true</code> : l'API exige en plus l'en-tête
+        <code>X-Synego-Zone: admin</code>, posé uniquement par le bloc nginx de la zone admin (le bloc public l'écrase).</li>
+</ul>
+
+<h3>Secrets</h3>
+<table class="compact">
+    <thead><tr><th style="width:32%">Secret</th><th>Où il vit</th></tr></thead>
+    <tbody>
+    <tr><td>Mots de passe PostgreSQL, phrase de sauvegarde</td><td><code>.env</code> du serveur (généré aléatoirement par <code>synego.sh init</code>, <code>chmod 600</code>)</td></tr>
+    <tr><td>Clé web Firebase (<code>VITE_FIREBASE_API_KEY</code>)</td><td><code>.env</code> uniquement, jamais dans le code ; restreinte dans Google Cloud aux sites du service et aux API Identity Toolkit et Token Service</td></tr>
+    <tr><td>Jeton Calendly de la coach</td><td>En base, chiffré par ASP.NET Data Protection (clés dans le volume <code>appdata</code>)</td></tr>
+    <tr><td>Clé de service Firebase (mode Storage Firebase)</td><td><code>secrets/*.json</code>, ignoré par git, monté en lecture seule</td></tr>
+    <tr><td>Accès SSH</td><td>Clés publiques dans <code>/root/.ssh/authorized_keys</code></td></tr>
+    </tbody>
+</table>
+<p class="small">Contrôles : <code>.env</code>, <code>secrets/*.json</code> et <code>compose.override.yaml</code> sont ignorés par git. Le scan de secrets de GitHub est actif sur le dépôt public.</p>
+
+<h3>Fichiers et données</h3>
+<ul>
+    <li>Dépôt de documents : PDF, PNG, JPEG, DOCX, XLSX, PPTX ; 10 Mo maximum ; extension <em>et</em> signature binaire vérifiées ;
+        nom de stockage aléatoire ; téléchargement uniquement par l'API après contrôle du propriétaire.</li>
+    <li>Suppression d'un document : douce (<code>DeletedAt</code>), purge définitive après 30 jours. Un client ne supprime que ses propres dépôts.</li>
+    <li>Calendly : l'API ne suit que des URI <code>api.calendly.com</code> (pas de SSRF) ; webhook signé HMAC, accepté pendant 3 minutes.</li>
+</ul>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">API .NET</h2>
+<h3>Routes</h3>
+<table class="compact">
+    <thead><tr><th style="width:26%">Groupe</th><th>Routes</th><th style="width:14%">Accès</th></tr></thead>
+    <tbody>
+    <tr><td><code>/api/health</code>, <code>/api/ping</code></td><td>santé (base + stockage, 503 si l'un ne répond pas), vivacité</td><td>public</td></tr>
+    <tr><td><code>/api/contact</code></td><td><code>POST</code> demande de devis ou de contact (crée un ticket), limité en débit, champ piège</td><td>public</td></tr>
+    <tr><td><code>/api/booking</code></td><td><code>GET /types</code> ; <code>POST /confirm</code> ; <code>GET /mine</code> ; <code>POST /mine/refresh</code> ; <code>POST /{id}/cancel</code> (refus à moins de 24 h)</td><td>public / connecté</td></tr>
+    <tr><td><code>/api/webhooks/calendly</code></td><td><code>POST</code> événements Calendly signés</td><td>signature HMAC</td></tr>
+    <tr><td><code>/api/me</code></td><td><code>GET</code> profil ; <code>DELETE</code> suppression du compte</td><td>connecté</td></tr>
+    <tr><td><code>/api/documents</code></td><td><code>GET</code> ; <code>POST</code> dépôt ; <code>GET /{id}/file</code> ; <code>DELETE /{id}</code></td><td>connecté</td></tr>
+    <tr><td><code>/api/tickets</code></td><td><code>GET</code> ; <code>POST</code> ; <code>GET /{id}</code> ; <code>POST /{id}/messages</code></td><td>connecté</td></tr>
+    <tr><td><code>/api/admin</code></td><td><code>GET /overview</code> ; clients (<code>GET</code>, <code>PATCH /{id}</code>, documents, notes) ; <code>GET/PATCH /appointments</code>, <code>POST /appointments/{id}/cancel</code> ; tickets (<code>GET</code>, <code>PATCH</code>, messages) ; <code>/document-categories</code></td><td>Coach</td></tr>
+    <tr><td><code>/api/admin/calendly</code></td><td><code>GET</code> état ; <code>POST /connect</code> ; <code>DELETE</code> ; <code>PUT /types</code> ; <code>POST /sync</code></td><td>Coach</td></tr>
+    <tr><td><code>/api/admin/coaches</code></td><td><code>GET</code> ; <code>POST</code> nommer ; <code>DELETE /{id}</code> ; <code>DELETE /invitations</code></td><td>Coach</td></tr>
+    </tbody>
+</table>
+<h3>Services de fond</h3>
+<ul>
+    <li><strong>Rappels</strong> (<code>ReminderService</code>) : toutes les 5 minutes (<code>IntervalMinutes</code>), envoie le rappel 48 h (bouton d'annulation)
+        aux rendez-vous entre 24 et 48 h, puis le rappel 24 h (lien Meet, plus d'annulation). Un rendez-vous pris tard ne reçoit que les rappels encore utiles.
+        Les envois sont marqués en base (<code>Reminder48SentAt</code>, <code>Reminder24SentAt</code>) : jamais de doublon.</li>
+    <li><strong>Purge des documents</strong> (<code>DocumentService</code>) : efface définitivement les fichiers supprimés depuis plus de 30 jours.</li>
+</ul>
+<h3>Intégration Calendly</h3>
+<ul>
+    <li>La coach colle un jeton personnel dans le back-office ; l'API le vérifie, le chiffre, puis liste ses types d'événements.</li>
+    <li>Chaque type du site (<code>Booking:Types</code>) est associé à un événement Calendly, masquable ; webhook automatique sur offre payante.</li>
+    <li>Réservation : l'iframe envoie <code>calendly.event_scheduled</code> ; le front appelle <code>/api/booking/confirm</code>, l'API relit l'invité chez Calendly
+        (idempotent sur l'URI) et récupère le lien de visio (<code>location.join_url</code>).</li>
+</ul>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Base de données</h2>
+<h3>Comptes et droits</h3>
+<table class="compact">
+    <thead><tr><th>Compte</th><th>Utilisé par</th><th>Droits</th></tr></thead>
+    <tbody>
+    <tr><td><code>postgres</code></td><td>personne (initialisation)</td><td>superutilisateur</td></tr>
+    <tr><td><code>synego_owner</code></td><td><code>migrate</code>, restauration</td><td>propriétaire du schéma <code>synego</code></td></tr>
+    <tr><td><code>synego_app</code></td><td>l'API</td><td><code>SELECT/INSERT/UPDATE/DELETE</code> sur les tables, rien sur la structure</td></tr>
+    <tr><td><code>synego_backup</code></td><td><code>backup</code></td><td>lecture seule</td></tr>
+    <tr><td><code>synego_readonly</code></td><td>l'équipe via Adminer</td><td>lecture seule</td></tr>
+    </tbody>
+</table>
+<p class="small">Posés par <code>deploy/postgres/init/01-roles.sh</code> au premier démarrage du volume, avec <code>ALTER DEFAULT PRIVILEGES</code> pour les nouvelles tables.
+    Connexions sans GSSAPI (<code>GSS Encryption Mode=Disable</code>).</p>
+<h3>Tables (schéma <code>synego</code>)</h3>
+<table class="compact">
+    <thead><tr><th style="width:28%">Table</th><th>Contenu</th></tr></thead>
+    <tbody>
+    <tr><td><code>user_accounts</code></td><td>Compte applicatif lié à l'identité Firebase (<code>FirebaseUid</code> unique), rôle, date de signature</td></tr>
+    <tr><td><code>appointments</code></td><td>Rendez-vous recopiés de Calendly, statut, lien Meet, traces des rappels, langue</td></tr>
+    <tr><td><code>client_documents</code></td><td>Métadonnées des documents (fichier sous un nom aléatoire), suppression douce</td></tr>
+    <tr><td><code>tickets</code>, <code>ticket_messages</code></td><td>Demandes de devis, de contact et de support, avec leur fil</td></tr>
+    <tr><td><code>client_notes</code></td><td>Notes privées de la coach (épinglables), jamais exposées au client</td></tr>
+    <tr><td><code>app_settings</code></td><td>Réglages du back-office (compte Calendly, jeton chiffré, correspondance des événements)</td></tr>
+    <tr><td><code>__ef_migrations</code></td><td>Historique des migrations EF Core</td></tr>
+    </tbody>
+</table>
+<h3>Migrations</h3>
+<pre><span class="c"># créer une migration après modification d'une entité (depuis la racine)</span>
+dotnet ef migrations add NomDeLaMigration --project "Synégo.Server"
+<span class="c"># vérifier qu'aucune migration ne manque (fait aussi par la CI)</span>
+dotnet ef migrations has-pending-model-changes --project "Synégo.Server"</pre>
+<p>Les migrations s'appliquent automatiquement au démarrage de la stack (service <code>migrate</code>, avant l'API).</p>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Front-end React</h2>
+<h3>Structure</h3>
+<table class="compact">
+    <thead><tr><th style="width:30%">Dossier</th><th>Contenu</th></tr></thead>
+    <tbody>
+    <tr><td><code>src/pages/site</code></td><td>Accueil, Séminaires, Accompagnement, Approche, Rendez-vous, Contact, pages légales</td></tr>
+    <tr><td><code>src/pages/auth</code></td><td>Connexion (e-mail, téléphone, Google), inscription</td></tr>
+    <tr><td><code>src/pages/espace</code></td><td>Espace client : accueil, rendez-vous, documents, demandes, profil</td></tr>
+    <tr><td><code>src/pages/admin</code></td><td>Back-office : aujourd'hui, clients, rendez-vous, demandes, Calendly, coachs</td></tr>
+    <tr><td><code>src/components</code></td><td>Mise en page, marque (cadran, logo), réservation, mouvement, interface (dialogues, notifications)</td></tr>
+    <tr><td><code>src/i18n</code></td><td><code>fr.ts</code> (référence), <code>en.ts</code> (même structure, vérifiée par TypeScript), <code>brand.ts</code> (coordonnées)</td></tr>
+    <tr><td><code>src/auth</code></td><td>Configuration Firebase, fournisseur d'authentification, traduction des erreurs</td></tr>
+    <tr><td><code>src/theme</code></td><td>Thème clair / sombre (<code>data-theme</code>), préférence mémorisée</td></tr>
+    </tbody>
+</table>
+<h3>Points d'implémentation</h3>
+<ul>
+    <li><strong>Routes</strong> : site public, <code>/connexion</code>, <code>/inscription</code>, <code>/espace/*</code> (connecté), <code>/admin/*</code> (Coach).
+        Les pages sont chargées à la demande (<code>lazy</code>) ; le back-office interroge <code>/api/admin/overview</code> toutes les 60 s pour ses pastilles.</li>
+    <li><strong>Langues</strong> : dictionnaire typé, langue mémorisée (<code>synego:locale</code>) ; ajouter une langue = copier <code>en.ts</code> et la déclarer.</li>
+    <li><strong>Thème</strong> : suit le système, mémorisé (<code>synego:theme</code>) ; couleurs en variables CSS dans <code>index.css</code>.</li>
+    <li><strong>Mouvement</strong> : <code>MotionConfig reducedMotion="user"</code> ; Lenis désactivé si l'utilisateur réduit les animations.</li>
+    <li><strong>Polices</strong> auto-hébergées (Fraunces, Hanken Grotesk) : aucune requête vers Google Fonts.</li>
+    <li><strong>Dialogues</strong> à la marque (<code>confirm</code>, <code>ask</code>, <code>toast</code>) à la place des fenêtres natives du navigateur.</li>
+</ul>
+<h3>Configuration Firebase côté navigateur</h3>
+<p><code>src/auth/firebase.ts</code> lit <code>VITE_FIREBASE_*</code> depuis le <code>.env</code> (lu par Vite en développement, passé en
+    <code>build args</code> à l'image nginx en production). <strong>La clé web n'a aucune valeur de repli dans le code</strong> : si elle manque,
+    le site s'affiche et la connexion échoue avec un message clair (<code>auth/invalid-api-key</code>). Les autres identifiants
+    (projet, domaine d'authentification, identifiant d'application) gardent un défaut public.</p>
+<p class="small"><code>VITE_FIREBASE_PHONE_TEST_MODE=true</code> désactive la vérification d'application pour les numéros de test déclarés dans la console Firebase.</p>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Configuration</h2>
+<p class="lead">Un seul fichier : <code>.env</code> à la racine, créé par <code>./synego.sh init</code> depuis <code>.env.example</code>
+    (mots de passe aléatoires). Il n'est jamais versionné.</p>
+<table class="compact">
+    <thead><tr><th style="width:34%">Variable</th><th>Rôle</th></tr></thead>
+    <tbody>
+    <tr><td><code>DOMAIN</code></td><td>Nom public du service (certificat, liens des e-mails, <code>App__PublicUrl</code>)</td></tr>
+    <tr><td><code>HTTP_PORT</code>, <code>HTTPS_PORT</code></td><td>Ports publics de nginx (80, 443)</td></tr>
+    <tr><td><code>ADMIN_BIND_IP</code>, <code>ADMIN_PORT</code></td><td>Interface et port des outils internes (production : <code>127.0.0.1</code>, 8444)</td></tr>
+    <tr><td><code>ADMIN_VPN_ONLY</code></td><td><code>true</code> : back-office accessible uniquement par la zone admin</td></tr>
+    <tr><td><code>Firebase__ProjectId</code></td><td>Projet Firebase dont l'API accepte les jetons</td></tr>
+    <tr><td><code>Admin__Emails</code></td><td>E-mail(s) de la coach principale (Coach si vérifié)</td></tr>
+    <tr><td><code>VITE_FIREBASE_API_KEY</code></td><td><strong>Obligatoire</strong> : clé web Firebase (uniquement ici)</td></tr>
+    <tr><td><code>VITE_FIREBASE_*</code> (5 autres)</td><td>Domaine d'authentification, projet, bucket, expéditeur, identifiant d'application</td></tr>
+    <tr><td><code>Storage__Provider</code>, <code>Storage__Bucket</code>, <code>FIREBASE_CREDENTIALS_NAME</code></td><td>Stockage des documents : <code>Local</code> (défaut) ou <code>Firebase</code></td></tr>
+    <tr><td><code>CALENDLY_URL_*</code>, <code>CALENDLY_TOKEN</code>, <code>CALENDLY_WEBHOOK_KEY</code></td><td>Liens par défaut et accès Calendly (normalement réglés depuis le back-office)</td></tr>
+    <tr><td><code>SMTP_HOST</code>, <code>SMTP_PORT</code>, <code>SMTP_USERNAME</code>, <code>SMTP_PASSWORD</code>, <code>SMTP_SECURITY</code></td><td>Serveur d'envoi des rappels (défaut : Mailpit)</td></tr>
+    <tr><td><code>EMAIL_FROM</code>, <code>EMAIL_REPLY_TO</code></td><td>Expéditeur et adresse de réponse des e-mails</td></tr>
+    <tr><td><code>POSTGRES_PASSWORD</code>, <code>SYNEGO_OWNER_PASSWORD</code>, <code>SYNEGO_APP_PASSWORD</code>, <code>SYNEGO_BACKUP_PASSWORD</code>, <code>SYNEGO_READONLY_PASSWORD</code></td><td>Mots de passe des comptes PostgreSQL (générés)</td></tr>
+    <tr><td><code>BACKUP_PASSPHRASE</code>, <code>BACKUP_CRON</code>, <code>BACKUP_RETENTION_DAYS</code>, <code>BACKUP_DIR</code></td><td>Chiffrement, horaire (défaut <code>0 2 * * *</code>), rétention (14 jours), dossier des sauvegardes</td></tr>
+    </tbody>
+</table>
+<div class="callout"><span class="callout-title">Surcouche propre au serveur</span>
+    <p class="small"><code>compose.override.yaml</code> (non versionné, chargé automatiquement par Docker Compose) ajoute en production le port 8443,
+        le bloc nginx <code>deploy/nginx/zabbix.conf</code> et le réseau externe de Zabbix. Il est généré par <code>install.sh</code>
+        quand un conteneur <code>zabbix-web</code> est détecté.</p></div>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Développer en local</h2>
+<h3>Prérequis</h3>
+<p>Docker Desktop ; pour travailler hors conteneurs : .NET SDK 10 et Node 24. Le dossier du projet contient un accent
+    (« projetkiné ») : passez toujours par <code>./synego.sh</code>, qui contourne un défaut de Docker Compose avec les chemins accentués.</p>
+<h3>Stack de développement (rechargement à chaud)</h3>
+<pre>./synego.sh init                 <span class="c"># une fois : crée .env (renseigner VITE_FIREBASE_API_KEY, Admin__Emails)</span>
+./synego.sh dev up               <span class="c"># front Vite (HMR) + API dotnet watch + base + Mailpit</span></pre>
+<table class="compact">
+    <thead><tr><th>Adresse</th><th>Service</th></tr></thead>
+    <tbody>
+    <tr><td><code>http://localhost:5173</code></td><td>Front Vite, rechargement instantané</td></tr>
+    <tr><td><code>http://localhost:8035</code></td><td>Mailpit de développement (rappels e-mail)</td></tr>
+    </tbody>
+</table>
+<h3>Stack de production en local</h3>
+<pre>./synego.sh up -d --build        <span class="c"># identique à la production, sur https://localhost</span>
+./synego.sh logs -f api          <span class="c"># journaux d'un service</span>
+./synego.sh down                 <span class="c"># arrêt (ajouter -v pour effacer les volumes)</span></pre>
+<p>Avec <code>DOMAIN=localhost</code> et <code>ADMIN_BIND_IP=127.0.0.1</code> : site sur <code>https://localhost</code> (certificat
+    auto-signé), zone admin sur <code>http://localhost:8443</code>, Adminer <code>:8082</code>, Uptime Kuma <code>:3001</code>, Mailpit <code>:8025</code>.</p>
+<h3>Contrôles avant de pousser</h3>
+<pre>dotnet build -c Release && dotnet test tests/Synego.Server.Tests
+npm --prefix Synego.Client run lint && npm --prefix Synego.Client run build</pre>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Intégration et déploiement continus</h2>
+<figure class="diagram"><!--include:cicd.svg--><figcaption>De la modification du code à la mise en production, sans intervention.</figcaption></figure>
+<h3>GitHub Actions (<code>.github/workflows/ci.yml</code>)</h3>
+<table class="compact">
+    <thead><tr><th style="width:26%">Job</th><th>Contrôles</th></tr></thead>
+    <tbody>
+    <tr><td>API .NET</td><td>Restauration, build Release (avertissements = erreurs), 28 tests xUnit, migrations à jour (<code>has-pending-model-changes</code>), paquets vulnérables</td></tr>
+    <tr><td>Front React</td><td><code>npm ci</code>, lint, types et build, <code>npm audit --omit=dev --audit-level=high</code></td></tr>
+    <tr><td>Scripts shell</td><td><code>shellcheck -S warning</code> sur tous les scripts</td></tr>
+    <tr><td>Docker</td><td>Construit les images, démarre toute la stack, vérifie <code>/api/health</code> et les codes attendus (200, 401, 404, 301)</td></tr>
+    <tr><td>Prêt pour la production</td><td>Sur <code>main</code> uniquement, quand tout est vert : c'est ce statut que le serveur attend</td></tr>
+    </tbody>
+</table>
+<h3>Déploiement par pull (<code>deploy/vps/synego-deploy.sh</code>)</h3>
+<ol class="steps">
+    <li><code>synego-deploy.timer</code> lance le service toutes les 2 minutes (et 2 minutes après le démarrage du serveur). Un verrou empêche deux déploiements simultanés.</li>
+    <li><code>git fetch</code> : si <code>origin/main</code> n'a pas bougé, rien à faire.</li>
+    <li>État de la CI du commit lu par l'API publique de GitHub (<code>check-runs</code>) : en cours → on attend ; échec → on ne déploie pas.</li>
+    <li>Sauvegarde de la base (<code>backup.sh</code>), puis <code>git checkout</code> du commit et <code>docker compose up -d --build --remove-orphans</code>.</li>
+    <li>Contrôle de <code>https://localhost/api/health</code> : succès → commit écrit dans <code>.deployed</code>, anciennes images nettoyées ;
+        échec → <strong>retour au commit précédent</strong> et reconstruction.</li>
+</ol>
+<pre>journalctl -u synego-deploy -f                      <span class="c"># suivre les déploiements</span>
+systemctl list-timers synego-deploy.timer           <span class="c"># prochain passage</span>
+/opt/synego/deploy/vps/synego-deploy.sh --force     <span class="c"># déployer sans attendre la CI (urgence)</span></pre>
+<p class="small">Option : <code>GITHUB_TOKEN</code> dans <code>/etc/synego-deploy.env</code> si le dépôt devient privé.</p>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Installer un serveur</h2>
+<p class="lead">Un serveur Ubuntu ou Debian neuf, en root, une commande. Le script est rejouable sans risque.</p>
+<pre>curl -fsSL https://raw.githubusercontent.com/luidgi-gaudin/projetkine/main/deploy/vps/install.sh \
+  | ADMIN_EMAILS=coach@exemple.fr FIREBASE_API_KEY=&lt;clé web&gt; bash</pre>
+<h3>Ce que fait <code>install.sh</code></h3>
+<ol class="steps">
+    <li>Paquets, Docker et Compose v2, swap de 2 Go si moins de 3 Go de RAM ; pare-feu UFW (22, 80, 443, 51820/udp).</li>
+    <li>Clone de <code>main</code> dans <code>/opt/synego</code>. Un dossier existant sans git est <strong>mis de côté</strong> (rien n'est supprimé) ;
+        un <code>.env</code> étranger est renommé et remplacé.</li>
+    <li><code>.env</code> : mots de passe aléatoires, <code>DOMAIN</code> (défaut <code>&lt;ip&gt;.sslip.io</code>), <code>ADMIN_BIND_IP=127.0.0.1</code>,
+        projet Firebase, coach, clé web.</li>
+    <li>Zabbix détecté : <code>ADMIN_PORT=8444</code> et génération de <code>compose.override.yaml</code>.</li>
+    <li>Ports 80/443 libérés si un autre conteneur ou service les occupe (arrêté, pas supprimé), puis construction et démarrage.</li>
+    <li>Certificat Let's Encrypt pour <code>DOMAIN</code> et <code>EXTRA_DOMAINS</code>, rechargement de nginx.</li>
+    <li>Installation et activation de <code>synego-deploy.service</code> et <code>synego-deploy.timer</code>.</li>
+</ol>
+<table class="compact">
+    <thead><tr><th style="width:28%">Variable</th><th>Effet</th></tr></thead>
+    <tbody>
+    <tr><td><code>ADMIN_EMAILS</code></td><td>Coach principale</td></tr>
+    <tr><td><code>FIREBASE_API_KEY</code></td><td>Écrit <code>VITE_FIREBASE_API_KEY</code> dans <code>.env</code> (avertissement si absente)</td></tr>
+    <tr><td><code>DOMAIN</code>, <code>EXTRA_DOMAINS</code></td><td>Nom principal, noms supplémentaires du certificat</td></tr>
+    <tr><td><code>LETSENCRYPT_EMAIL</code>, <code>FIREBASE_PROJECT_ID</code></td><td>Avis d'expiration Let's Encrypt ; autre projet Firebase que celui du dépôt</td></tr>
+    </tbody>
+</table>
+<h3>Durcissement et VPN (facultatif)</h3>
+<pre>DEPLOY_USER=deploy bash deploy/vps/01-hardening.sh   <span class="c"># utilisateur dédié, SSH par clé, fail2ban, mises à jour auto</span>
+bash deploy/vps/02-wireguard.sh                     <span class="c"># serveur WireGuard 10.8.0.1</span>
+bash deploy/vps/wg-add-peer.sh gerante 10.8.0.2     <span class="c"># profil + QR code</span></pre>
+<p class="small">Avec le VPN actif : <code>ADMIN_BIND_IP=10.8.0.1</code> dans <code>.env</code>, puis réserver SSH au VPN
+    (<code>ufw allow in on wg0 to any port 22 proto tcp &amp;&amp; ufw delete allow 22/tcp</code>).</p>
+<p class="small"><strong>Nouveau domaine</strong> : l'ajouter dans Firebase › Authentication › Domaines autorisés, et
+    <code>https://&lt;domaine&gt;/*</code> aux sites autorisés de la clé « Synego web » (Google Cloud).</p>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Exploitation</h2>
+<h3>Commandes courantes (sur le serveur, dans <code>/opt/synego</code>)</h3>
+<table class="compact">
+    <thead><tr><th style="width:62%">Commande</th><th>Usage</th></tr></thead>
+    <tbody>
+    <tr><td><code>docker compose ps</code></td><td>État des conteneurs</td></tr>
+    <tr><td><code>docker compose logs --tail 100 api nginx db</code></td><td>Journaux récents</td></tr>
+    <tr><td><code>docker compose up -d</code></td><td>Relancer ce qui est arrêté</td></tr>
+    <tr><td><code>docker compose exec backup backup.sh</code></td><td>Sauvegarde immédiate</td></tr>
+    <tr><td><code>docker compose stop api && docker compose exec backup restore.sh && docker compose start api</code></td><td>Restaurer la dernière sauvegarde</td></tr>
+    <tr><td><code>docker compose run --rm --entrypoint certbot certbot renew</code></td><td>Renouveler le certificat à la main</td></tr>
+    <tr><td><code>docker compose exec nginx synego-reload-certs</code></td><td>Recharger les certificats</td></tr>
+    <tr><td><code>curl -s https://localhost/api/health -k</code></td><td>Santé de l'API</td></tr>
+    </tbody>
+</table>
+<h3>Accéder aux outils internes par tunnel SSH</h3>
+<pre>ssh -N -L 8082:127.0.0.1:8082 -L 3001:127.0.0.1:3001 -L 8025:127.0.0.1:8025 -L 8444:127.0.0.1:8444 root@172.239.9.200
+<span class="c"># puis, sur le poste : http://localhost:8082 (Adminer, compte synego_readonly), :3001 (Uptime Kuma),
+# :8025 (Mailpit), :8444 (zone admin)</span></pre>
+<h3>Surveillance</h3>
+<ul>
+    <li><code>/api/health</code> répond <code>{"status":"ok","database":true,"documents":true}</code>, ou 503 dès que la base ou le stockage ne répond plus.</li>
+    <li>Uptime Kuma : moniteur « HTTP(s) – mot-clé » sur <code>https://DOMAINE/api/health</code> (mot-clé <code>"ok"</code>, 60 s), moniteur de
+        certificat (alerte à 14 jours), notification e-mail, Telegram ou Discord.</li>
+    <li>Zabbix (équipe Réseau) : supervision de l'hôte, interface sur le port 8443.</li>
+</ul>
+<h3>Sauvegardes et test de restauration</h3>
+<p>Chaque nuit à 2 h et avant chaque déploiement : <code>pg_dump</code> du schéma <code>synego</code> au format custom, chiffré AES-256 (<code>BACKUP_PASSPHRASE</code>),
+    rotation à 14 jours, dans <code>/opt/synego/backups</code>. <strong>À ajouter</strong> : une copie hors du VPS.</p>
+<p>Tester sans toucher à la production : restaurer dans une base temporaire.</p>
+<pre>docker compose exec -T db psql -U postgres -c "create database synego_restore_test owner synego_owner"
+docker compose exec -T db psql -U postgres -d synego_restore_test -c "create schema synego authorization synego_owner"
+docker compose exec -T backup sh -c 'f=$(ls -1t /backups/synego_*.dump.enc | head -n1);
+  openssl enc -d -aes-256-cbc -pbkdf2 -pass env:BACKUP_PASSPHRASE -in "$f" -out /tmp/t.dump &&
+  PGUSER=synego_owner PGPASSWORD="$SYNEGO_OWNER_PASSWORD" pg_restore --no-owner --schema=synego -d synego_restore_test /tmp/t.dump'
+<span class="c"># comparer les comptages avec la base réelle, puis :</span>
+docker compose exec -T db psql -U postgres -c "drop database synego_restore_test"</pre>
+<p class="small">Test réalisé le 4 novembre 2026 : restauration, effacement volontaire d'un compte dans la copie, nouvelle restauration, compte retrouvé.</p>
+<h3>Changer la clé web Firebase</h3>
+<ol class="steps">
+    <li>Google Cloud › Identifiants : créer une clé restreinte (sites du service, API Identity Toolkit et Token Service).</li>
+    <li>Écrire la nouvelle valeur dans <code>VITE_FIREBASE_API_KEY</code> du <code>.env</code> (serveur et postes).</li>
+    <li>Reconstruire nginx (<code>docker compose up -d --build nginx</code>, ou attendre le prochain déploiement).</li>
+    <li>Vérifier que le site embarque la nouvelle clé, puis supprimer l'ancienne dans Google Cloud.</li>
+</ol>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Procédures d'urgence</h2>
+<table class="compact">
+    <thead><tr><th style="width:18%">Situation</th><th style="width:22%">Repérer</th><th>Traiter</th><th style="width:26%">Dire au client</th></tr></thead>
+    <tbody>
+    <tr><td>Site hors ligne</td><td>Alerte de surveillance, <code>/api/health</code> en erreur</td><td><code>docker compose ps</code>, journaux, <code>docker compose up -d</code> ; si le dernier déploiement est en cause : <code>git checkout</code> du commit de <code>.deployed</code> précédent et reconstruction</td><td>« Le site a été indisponible X minutes ; nous avons été prévenus et l'avons relancé. »</td></tr>
+    <tr><td>Donnée effacée</td><td>Signalement</td><td>Restauration (chapitre 11) ; un document supprimé reste sur le disque 30 jours</td><td>« Nous avons récupéré l'information grâce à la sauvegarde de cette nuit. »</td></tr>
+    <tr><td>Compte compromis</td><td>Signalement, activité anormale</td><td>Console Firebase : désactiver l'utilisateur ; back-office : repasser en Prospect ; retirer un coach si besoin</td><td>« Nous avons bloqué l'accès ; vos données sont intactes. »</td></tr>
+    <tr><td>Secret exposé</td><td>Alerte GitHub, usage anormal</td><td>Restreindre, remplacer (chapitre 11), supprimer l'ancien, clore l'alerte en « révoqué »</td><td>« Une clé a été changée par précaution ; l'ancienne ne fonctionne plus. »</td></tr>
+    <tr><td>Attaque, trafic anormal</td><td>Réponses 429, journaux nginx</td><td><code>ufw insert 1 deny from &lt;IP&gt;</code> ; les limites de débit protègent déjà les formulaires</td><td>« Les protections ont bloqué la tentative, aucune donnée n'a été touchée. »</td></tr>
+    <tr><td>Certificat expiré</td><td>Moniteur de certificat</td><td><code>certbot renew</code> puis <code>synego-reload-certs</code></td><td>« Le cadenas de sécurité est rétabli. »</td></tr>
+    <tr><td>Disque plein</td><td><code>df -h</code></td><td><code>du -sh backups</code>, baisser <code>BACKUP_RETENTION_DAYS</code>, <code>docker system prune</code></td><td>—</td></tr>
+    <tr><td>Calendly ou Firebase en panne</td><td>Erreurs côté site</td><td>Le site reste en ligne ; renvoyer vers la page Contact (les demandes deviennent des tickets)</td><td>« Un service partenaire a eu une panne ; vos clients pouvaient toujours vous écrire. »</td></tr>
+    </tbody>
+</table>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Qualité et limites connues</h2>
+<h3>Tests et contrôles</h3>
+<ul>
+    <li><strong>28 tests xUnit</strong> : règles des documents (formats, signatures, tailles), Calendly (URI autorisées, signature des webhooks, correspondances),
+        e-mails de rappel (annulation proposée à 48 h, lien Meet et annulation fermée à 24 h, traduction anglaise, échappement HTML du nom).</li>
+    <li>Build .NET en <code>TreatWarningsAsErrors</code> ; ESLint et TypeScript strict côté front ; structure des traductions vérifiée à la compilation.</li>
+    <li>Audits de dépendances (NuGet vulnérables, <code>npm audit</code>), <code>shellcheck</code>, démarrage réel de la stack dans la CI.</li>
+</ul>
+<h3>Limites connues et suite</h3>
+<table class="compact">
+    <thead><tr><th style="width:38%">Point</th><th>Action proposée</th></tr></thead>
+    <tbody>
+    <tr><td>Alerte de surveillance non encore configurée</td><td>Moniteur Uptime Kuma ou déclencheur Zabbix sur <code>/api/health</code>, notification testée</td></tr>
+    <tr><td>VPN WireGuard prêt mais non activé</td><td><code>02-wireguard.sh</code>, puis <code>ADMIN_BIND_IP=10.8.0.1</code> ; aujourd'hui, tunnel SSH</td></tr>
+    <tr><td>SSH accepte encore les mots de passe</td><td><code>01-hardening.sh</code> (clé uniquement, fail2ban) et changement du mot de passe root</td></tr>
+    <tr><td>Sauvegardes sur le même VPS</td><td>Copie quotidienne vers un stockage externe</td></tr>
+    <tr><td>Pas de SMTP réel en production</td><td>Compte SMTP (par exemple Brevo), SPF et DKIM du domaine</td></tr>
+    <tr><td>Calendly non relié en production</td><td>La coach colle son jeton depuis le back-office, durées alignées sur les textes</td></tr>
+    <tr><td>Adresse <code>sslip.io</code> bloquée par certains filtres (« Dynamic DNS »)</td><td>Nom de domaine dédié</td></tr>
+    <tr><td>Deux tâches planifiées de l'équipe Réseau visent l'ancien dossier</td><td>Les retirer (le service a ses propres sauvegarde et renouvellement)</td></tr>
+    <tr><td>Domaine <code>synego.duckdns.org</code> non autorisé dans Firebase</td><td>L'ajouter (Firebase et restriction de la clé) si ce domaine doit servir à la connexion</td></tr>
+    </tbody>
+</table>
+</body>
+</html>

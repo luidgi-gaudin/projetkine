@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Hanken Grotesk Variable, Helvetica, Arial, sans-serif" role="img" aria-label="Chaîne d'intégration et de déploiement continus">
+  <defs>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 10 5 0 10z" fill="#0a1d35"/>
+    </marker>
+    <style>
+      .b{fill:#fff;stroke:#0a1d35;stroke-width:1.3}
+      .g{fill:#d0e7f5;stroke:#2f6e98;stroke-width:1.2}
+      .ok{fill:#e7f3ec;stroke:#2e7d5b;stroke-width:1.2}
+      .ko{fill:#fbecec;stroke:#b23a3a;stroke-width:1.2}
+      .n{font-size:10px;font-weight:700;fill:#2f6e98;letter-spacing:1px}
+      .t{font-size:12.5px;font-weight:650;fill:#0a1d35}
+      .s{font-size:10px;fill:#3a4a60}
+      .f{fill:none;stroke:#0a1d35;stroke-width:1.4}
+    </style>
+  </defs>
+  <rect class="b" x="10" y="20" width="140" height="92" rx="10"/>
+  <text x="24" y="40" class="n">1 · DÉVELOPPEUR</text>
+  <text x="24" y="62" class="t">git push main</text>
+  <text x="24" y="80" class="s">commit relu,</text>
+  <text x="24" y="94" class="s">aucun secret dans le code</text>
+
+  <rect class="g" x="180" y="20" width="200" height="92" rx="10"/>
+  <text x="194" y="40" class="n">2 · GITHUB ACTIONS</text>
+  <text x="194" y="62" class="t">5 contrôles automatiques</text>
+  <text x="194" y="80" class="s">API : build, 28 tests, migrations</text>
+  <text x="194" y="94" class="s">Front : lint, build, audit · Scripts</text>
+  <text x="194" y="106" class="s">Docker : la stack démarre vraiment</text>
+
+  <rect class="b" x="410" y="20" width="160" height="92" rx="10"/>
+  <text x="424" y="40" class="n">3 · SERVEUR</text>
+  <text x="424" y="62" class="t">toutes les 2 min</text>
+  <text x="424" y="80" class="s">nouveau commit sur main ?</text>
+  <text x="424" y="94" class="s">CI verte ? sinon on attend</text>
+
+  <rect class="b" x="600" y="20" width="170" height="92" rx="10"/>
+  <text x="614" y="40" class="n">4 · DÉPLOIEMENT</text>
+  <text x="614" y="62" class="t">sauvegarde d'abord</text>
+  <text x="614" y="80" class="s">puis mise à jour du code</text>
+  <text x="614" y="94" class="s">et reconstruction Docker</text>
+
+  <rect class="ok" x="800" y="20" width="190" height="60" rx="10"/>
+  <text x="814" y="40" class="n">5 · SANTÉ OK</text>
+  <text x="814" y="60" class="t">en ligne en ~2 min</text>
+  <text x="814" y="73" class="s">/api/health répond « ok »</text>
+  <rect class="ko" x="800" y="100" width="190" height="72" rx="10"/>
+  <text x="814" y="120" class="n" fill="#b23a3a">5 · SANTÉ KO</text>
+  <text x="814" y="140" class="t">retour arrière</text>
+  <text x="814" y="154" class="s">version précédente relancée,</text>
+  <text x="814" y="167" class="s">l'incident est journalisé</text>
+
+  <path class="f" d="M150 66 H178" marker-end="url(#c)"/>
+  <path class="f" d="M380 66 H408" marker-end="url(#c)"/>
+  <path class="f" d="M570 66 H598" marker-end="url(#c)"/>
+  <path class="f" d="M770 52 H798" marker-end="url(#c)"/>
+  <path class="f" d="M770 90 C785 90 785 136 798 136" marker-end="url(#c)"/>
+  <text x="180" y="140" class="s">CI rouge : rien ne part en production, le serveur garde la version en cours.</text>
+  <text x="180" y="156" class="s">Forcer en cas d'urgence : deploy/vps/synego-deploy.sh --force (sur le serveur).</text>
+</svg>

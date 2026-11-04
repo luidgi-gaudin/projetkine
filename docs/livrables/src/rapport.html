@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Synégo · Rapport de projet</title>
+<link rel="stylesheet" href="livrable.css">
+<style>@page { @bottom-left { content: "Synégo · Rapport de projet"; } }</style>
+</head>
+<body>
+
+<section class="cover">
+    <div class="cover-brand">
+        <svg viewBox="0 0 100 100" width="50" height="50" aria-hidden="true">
+            <circle cx="50" cy="50" r="44" fill="none" stroke="#f2e8dc" stroke-width="3.2"/>
+            <path d="M50 8.5v5M50 86.5v5M8.5 50h5M86.5 50h5M29.3 14.1l2.5 4.3M68.2 81.6l2.5 4.3M14.1 29.3l4.3 2.5M81.6 68.2l4.3 2.5M14.1 70.7l4.3-2.5M81.6 31.8l4.3-2.5M29.3 85.9l2.5-4.3M68.2 18.4l2.5-4.3" stroke="#f2e8dc" stroke-width="3.2"/>
+            <polygon fill="#d0e7f5" points="32,44 68,44 78.6,54.8 50,88 21.4,54.8"/>
+            <polygon fill="#9fc6de" points="32,44 50,44 38,54.8"/><polygon fill="#9fc6de" points="50,44 68,44 62,54.8"/>
+            <polygon fill="#9fc6de" points="21.4,54.8 38,54.8 50,88"/><polygon fill="#9fc6de" points="50,54.8 62,54.8 50,88"/>
+            <path d="M32 44H68L78.6 54.8 50 88 21.4 54.8Z M21.4 54.8H78.6 M32 44 38 54.8 50 44 62 54.8 68 44 M38 54.8 50 88 M62 54.8 50 88" fill="none" stroke="#0a1d35" stroke-width="3.2" stroke-linejoin="round"/>
+            <path d="M50 21 51.1 31.9 65 33 51.1 34.1 50 42 48.9 34.1 35 33 48.9 31.9Z" fill="#d9c9b4"/>
+        </svg>
+        Synégo
+    </div>
+    <p class="cover-kicker">Atelier Simulation de projet Agile · ISITECH</p>
+    <h1>Rapport<br>de <em>projet</em></h1>
+    <p class="cover-lead">Un service en ligne complet pour une activité de bien-être en entreprise : site vitrine,
+        prise de rendez-vous, espace client sécurisé et back-office de la coach, hébergés sur un VPS administré
+        par l'équipe.</p>
+    <dl class="cover-meta">
+        <dt>Sprint</dt><dd>Sprint 1 · du lundi 2 au jeudi 5 novembre 2026</dd>
+        <dt>Service</dt><dd>https://172-239-9-200.sslip.io</dd>
+        <dt>Code</dt><dd>github.com/luidgi-gaudin/projetkine</dd>
+        <dt>Équipe</dt><dd>Équipe mixte Développement + Réseau (composition en partie 02)</dd>
+        <dt>Version</dt><dd>4 novembre 2026, avant la Sprint Review</dd>
+    </dl>
+</section>
+
+<section class="toc">
+    <h2>Sommaire</h2>
+    <ol>
+        <li>Le client et son besoin <span>reformulation, ce que nous livrons</span></li>
+        <li>Organisation de l'équipe <span>rôles Scrum, Trello, règles de communication</span></li>
+        <li>Sprint Planning <span>Sprint Goal, Definition of Done, backlogs</span></li>
+        <li>Déroulé du sprint <span>journal jour par jour</span></li>
+        <li>Changements demandés par le client <span>négociation et arbitrages</span></li>
+        <li>Urgences et incidents <span>repérer, tracer, traiter, expliquer</span></li>
+        <li>Cadre technique imposé <span>VPS, accès privé, base SQL, sauvegarde, tickets</span></li>
+        <li>Fiches de preuve <span>ce que le PO montrera au client</span></li>
+        <li>Architecture et règles d'accès <span>schéma à jour, qui parle à quoi</span></li>
+        <li>Definition of Done : état par story <span>ce qui est fait, partiel, à faire</span></li>
+        <li>Rétrospective <span>Start / Stop / Continue, collaboration Dev-Réseau</span></li>
+        <li>Bilan et préparation de la démo <span>risques, plan de la Sprint Review</span></li>
+    </ol>
+</section>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Le client et son besoin</h2>
+<p class="lead">Notre client est une <strong>coach bien-être, kinésithérapeute de formation</strong>, qui accompagne
+    des entreprises et des particuliers : séminaires d'équipe, ateliers de posture et de respiration, suivi individuel.
+    Elle travaille <strong>presque entièrement à distance, en visio Google Meet</strong>, sans locaux.</p>
+
+<h3>Ce que le client nous a dit, et ce que nous en avons compris</h3>
+<table>
+    <thead><tr><th style="width:42%">Ce que le client exprime</th><th>Ce que nous en faisons</th></tr></thead>
+    <tbody>
+    <tr><td>« Je veux que les gens ressentent du calme dès qu'ils arrivent. »</td>
+        <td>Un site vitrine apaisant et propre à la marque : palette du logo, animations lentes, un exercice de
+            respiration (cohérence cardiaque) dès l'accueil, aucun visuel « générique ».</td></tr>
+    <tr><td>« Mes séminaires doivent être mis en avant. »</td>
+        <td>Une page Séminaires avec les formats, une journée type et une FAQ, qui mène à une demande de devis.</td></tr>
+    <tr><td>« Pas de prix, tout est sur devis. »</td>
+        <td>Aucun tarif nulle part sur le site ; chaque appel à l'action mène à un devis ou à un rendez-vous.</td></tr>
+    <tr><td>« Les prospects et mes clients ne réservent pas la même chose. »</td>
+        <td>Deux parcours de réservation Calendly : audit séminaire et appel découverte pour les prospects ;
+            séance de suivi <strong>réservée aux clients signés</strong>. Aucune confirmation manuelle.</td></tr>
+    <tr><td>« Mes clients doivent retrouver leurs documents en toute confidentialité. »</td>
+        <td>Un espace client privé : documents, rendez-vous, demandes ; connexion par e-mail, SMS ou Google.</td></tr>
+    <tr><td>« Je veux gérer tout ça simplement. »</td>
+        <td>Un back-office pour la coach : tableau du jour, clients, rendez-vous, demandes, notes privées,
+            liaison Calendly en un clic, nomination d'autres coachs.</td></tr>
+    <tr><td>« Je ne suis pas médecin. »</td>
+        <td>Un avertissement clair : prestations de bien-être et de prévention, ni diagnostic ni traitement.
+            Pas de données de santé dans l'espace client ni dans les notes.</td></tr>
+    </tbody>
+</table>
+
+<h3>Ce que nous livrons</h3>
+<p>Non pas « un site » ni « un serveur », mais un <strong>service en ligne de bout en bout</strong> :</p>
+<div class="grid2">
+    <div class="card"><h4>Ce que voient les utilisateurs</h4>
+        <ul><li>Site vitrine en français et en anglais, clair ou sombre, adapté au téléphone.</li>
+            <li>Réservation en ligne, ajout à l'agenda (Google, Apple, Samsung, Outlook), rappels par e-mail
+                48 h et 24 h avant.</li>
+            <li>Espace client et back-office de la coach.</li></ul></div>
+    <div class="card"><h4>Ce qui fait tenir le service</h4>
+        <ul><li>Un VPS Linux administré par l'équipe, pare-feu, HTTPS valide.</li>
+            <li>Base PostgreSQL aux comptes limités, accessible uniquement par tunnel SSH.</li>
+            <li>Sauvegardes chiffrées et restauration testée, surveillance, déploiement automatique.</li></ul></div>
+</div>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Organisation de l'équipe</h2>
+<h3>Rôles Scrum</h3>
+<table>
+    <thead><tr><th style="width:24%">Rôle</th><th style="width:30%">Qui</th><th>Engagement</th></tr></thead>
+    <tbody>
+    <tr><td><strong>Product Owner</strong></td><td><span class="fill">à compléter</span></td>
+        <td>Seul interlocuteur du client, du briefing à la Sprint Review. Parle valeur, jamais technique.
+            Priorise le backlog.</td></tr>
+    <tr><td><strong>Scrum Master</strong></td><td><span class="fill">à compléter</span></td>
+        <td>Garant du processus. Trace chaque obstacle dans Trello (carte rouge « Obstacle »), en particulier
+            quand un profil Dev attend un profil Réseau, ou l'inverse.</td></tr>
+    <tr><td><strong>Équipe de développement</strong></td><td>Luidgi GAUDIN, <span class="fill">à compléter</span></td>
+        <td>Profils Dev et Réseau ensemble sur chaque story : aucune story « par discipline ».</td></tr>
+    </tbody>
+</table>
+
+<h3>Règles de communication</h3>
+<ul>
+    <li>Le client ne parle <strong>qu'au PO</strong> : briefing, points quotidiens, demande de démo, Sprint Review.</li>
+    <li>Tout ce que le PO montre est formulé <strong>sans jargon</strong>. Des phrases types sont prêtes pour chaque
+        urgence (voir partie 06).</li>
+    <li>Une fonctionnalité n'existe pour le client que si elle est <strong>démontrée</strong> : chaque story terminée
+        a sa fiche de preuve (partie 08).</li>
+</ul>
+
+<h3>Outil de gestion : Trello</h3>
+<p>Le client a demandé Trello à la place de Jira. Le tableau <strong>« Synégo · Sprint 1 »</strong> se crée en une
+    commande à partir du backlog versionné dans le dépôt (<code>docs/scrum/backlog.json</code>, script
+    <code>scripts/trello_import.py</code>), ce qui garantit que l'outil et le code racontent la même histoire.</p>
+<table class="compact">
+    <thead><tr><th style="width:30%">Liste</th><th>Contenu</th></tr></thead>
+    <tbody>
+    <tr><td>Infos sprint</td><td>Sprint Goal, Definition of Done (checklist), règles du tableau</td></tr>
+    <tr><td>Product Backlog</td><td>13 stories verticales, chacune avec sa checklist DoD et sa fiche de preuve</td></tr>
+    <tr><td>Sprint Backlog</td><td>47 tâches étiquetées Dev, Réseau ou Mixte, reliées à leur story</td></tr>
+    <tr><td>En cours · À démontrer au PO · Terminé</td><td>le flux de travail, mis à jour en temps réel</td></tr>
+    <tr><td>Daily &amp; Rétro</td><td>un compte-rendu par Daily (modèle à dupliquer), la rétrospective</td></tr>
+    </tbody>
+</table>
+<p>Étiquettes : <span class="tag dev">Dev</span> <span class="tag res">Réseau</span> <span class="tag mix">Mixte</span>
+    <span class="tag todo">Obstacle</span> <span class="tag part">Urgence</span> <span class="tag info">Changement</span>.
+    Le tableau est partagé avec le client (rôle observateur) dès le premier jour.</p>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Sprint Planning</h2>
+<h3>Sprint Goal</h3>
+<p class="quote">À la fin du sprint, un visiteur trouve Synégo à une adresse sécurisée, découvre les séminaires,
+    réserve un premier rendez-vous ou demande un devis, et un client retrouve ses documents dans un espace privé.
+    La coach administre le tout depuis un accès réservé, surveillé et sauvegardé.</p>
+
+<h3>Definition of Done</h3>
+<p>La base commune imposée, complétée par nos propres critères (en <em>italique</em>) :</p>
+<ol>
+    <li>fonctionne depuis l'extérieur du réseau de test (adresse publique) ;</li>
+    <li>HTTPS valide (cadenas, aucun avertissement) ;</li>
+    <li>règles d'accès documentées : qui peut parler à quoi (partie 09) ;</li>
+    <li>schéma d'architecture à jour ;</li>
+    <li>brique surveillée, avec une alerte configurée ;</li>
+    <li>données sensibles accessibles uniquement par le tunnel SSH ou le VPN ;</li>
+    <li>une sauvegarde existe et sa restauration a été testée ;</li>
+    <li><em>textes en français et en anglais, thème clair et sombre, affichage mobile vérifié ;</em></li>
+    <li><em>la CI est verte : build sans erreur ni avertissement, tests, migrations à jour, audit de sécurité ;</em></li>
+    <li><em>aucun secret dans le dépôt (clés et mots de passe uniquement dans <code>.env</code>) ;</em></li>
+    <li><em>fiche de preuve remplie dans la carte Trello ;</em></li>
+    <li>démontrée au PO, puis acceptée.</li>
+</ol>
+
+<h3>Product Backlog</h3>
+<p>13 stories, toutes formulées du point de vue du client et toutes <strong>mixtes</strong> : chacune mobilise
+    au moins un profil Dev et un profil Réseau. Total : 55 points.</p>
+<table class="compact">
+    <thead><tr><th>#</th><th>Story (valeur pour le client)</th><th>Priorité</th><th class="num">Pts</th><th>Profils</th></tr></thead>
+    <tbody>
+    <tr><td>S1</td><td>Mes visiteurs accèdent à mon site à une adresse simple et sécurisée</td><td>Critique</td><td class="num">5</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S2</td><td>Mes visiteurs découvrent mes séminaires et me demandent un devis</td><td>Critique</td><td class="num">5</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S7</td><td>Mes informations sensibles ne sont accessibles que par un accès privé</td><td>Critique</td><td class="num">8</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S3</td><td>Un prospect réserve un audit ou un appel découverte sans m'appeler</td><td>Haute</td><td class="num">3</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S4</td><td>Mes clients se connectent par e-mail, SMS ou Google</td><td>Haute</td><td class="num">5</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S5</td><td>Mes clients retrouvent leurs documents en toute confidentialité</td><td>Haute</td><td class="num">5</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S8</td><td>Si une information est effacée par erreur, on la récupère</td><td>Haute</td><td class="num">5</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S9</td><td>Je suis prévenue quand quelque chose ne va pas</td><td>Haute</td><td class="num">3</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S12</td><td>Mes clients n'oublient pas leurs rendez-vous (rappels 48 h et 24 h)</td><td>Haute</td><td class="num">5</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S6</td><td>Mes clients signés réservent eux-mêmes leurs séances de suivi</td><td>Moyenne</td><td class="num">3</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S10</td><td>Mes clients posent leurs questions et suivent les réponses (tickets)</td><td>Moyenne</td><td class="num">3</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S13</td><td>Je garde le fil de chaque client (notes privées de la coach)</td><td>Moyenne</td><td class="num">3</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    <tr><td>S11</td><td>Mes visiteurs lisent le site sur téléphone, en anglais ou de nuit</td><td>Basse</td><td class="num">2</td><td><span class="tag dev">Dev</span> <span class="tag res">Réseau</span></td></tr>
+    </tbody>
+</table>
+
+<h3>Sprint Backlog</h3>
+<div class="stats">
+    <div class="stat"><b>47</b><span>tâches au Sprint Backlog</span></div>
+    <div class="stat"><b>21</b><span>tâches Dev</span></div>
+    <div class="stat"><b>16</b><span>tâches Réseau</span></div>
+    <div class="stat"><b>10</b><span>tâches Mixte (Dev et Réseau ensemble)</span></div>
+</div>
+<p>Exemples de découpage d'une story en tâches des deux profils :</p>
+<table class="compact">
+    <thead><tr><th style="width:15%">Story</th><th>Tâches</th></tr></thead>
+    <tbody>
+    <tr><td>S1 · adresse simple</td><td><span class="tag res">Réseau</span> VPS durci (pare-feu, SSH par clé), nom de domaine, nginx + certificat Let's Encrypt ·
+        <span class="tag dev">Dev</span> build de production servi par nginx, en-têtes de sécurité</td></tr>
+    <tr><td>S7 · accès privé</td><td><span class="tag res">Réseau</span> base, Adminer et supervision publiés sur l'interface locale seulement, tunnel SSH ou VPN ·
+        <span class="tag dev">Dev</span> rôle Coach vérifié côté API, rôle lu en base et jamais dans le jeton</td></tr>
+    <tr><td>S8 · récupération</td><td><span class="tag res">Réseau</span> sauvegarde chiffrée nocturne ·
+        <span class="tag dev">Dev</span> suppression différée des documents (30 jours) ·
+        <span class="tag mix">Mixte</span> test de restauration documenté</td></tr>
+    <tr><td>S10 · tickets</td><td><span class="tag dev">Dev</span> espace de demandes côté client et back-office ·
+        <span class="tag res">Réseau</span> sauvegarde et surveillance incluent les tickets ·
+        <span class="tag mix">Mixte</span> clarifier avec le client qui utilise les tickets et pour quoi</td></tr>
+    </tbody>
+</table>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Déroulé du sprint</h2>
+<p class="lead">Ce journal est reconstitué à partir de l'historique du dépôt, des exécutions de la CI et des journaux
+    du serveur. Les comptes-rendus de Daily détaillés sont sur Trello.</p>
+<div class="stats">
+    <div class="stat"><b>8</b><span>passages de la CI sur main</span></div>
+    <div class="stat"><b>7</b><span>verts (le premier, rouge, a révélé un oubli)</span></div>
+    <div class="stat"><b>~2 min</b><span>entre un push validé et la mise en ligne</span></div>
+    <div class="stat"><b>0</b><span>mise en ligne sans sauvegarde préalable</span></div>
+</div>
+<div class="callout"><span class="callout-title">Modèle de compte-rendu de Daily (carte Trello)</span>
+    <p class="small">Daily du [date] · présents · <strong>Hier</strong> · <strong>Aujourd'hui</strong> ·
+        <strong>Obstacles</strong> (carte créée ? qui la lève ?) · <strong>Dev ↔ Réseau</strong> : qui attend qui ?</p></div>
+
+<h3>Jour 1 · lundi 2 novembre : Planning et lancement</h3>
+<ul>
+    <li>Briefing client, auto-organisation, choix des rôles, création du tableau Trello et partage avec le client.</li>
+    <li>Sprint Planning : Product Backlog initial, Sprint Goal, Definition of Done, Sprint Backlog (47 tâches).</li>
+    <li>Choix techniques justifiés en langage simple : Linux (standard des serveurs web, léger, gratuit), C# .NET et
+        React, Docker pour que « ce qui marche chez nous marche sur le serveur », Firebase pour la connexion
+        (aucun mot de passe stocké chez nous), PostgreSQL pour les données.</li>
+    <li>Création du dépôt et du squelette du projet (premiers commits à 15 h 46).</li>
+</ul>
+
+<h3>Jour 2 · mardi 3 novembre : Développement et changements</h3>
+<ul>
+    <li>Développement des stories prioritaires : site vitrine, réservation, connexion, espace client, back-office.</li>
+    <li>Réunion client/PO : <strong>plusieurs changements de besoin</strong> (détaillés en partie 05) — notamment
+        le retrait du VPN pour la coach, le travail 100 % à distance, les rappels par e-mail, les notes sur les clients.</li>
+    <li>Côté Réseau : VPS Linode préparé (pare-feu UFW, domaine <code>synego.duckdns.org</code>, certificat,
+        supervision <strong>Zabbix</strong>, script de sauvegarde).</li>
+    <li>Soirée : pipeline CI/CD complet et déploiement automatique ; premier passage de la CI <strong>rouge</strong>
+        (des fichiers manquaient dans le dépôt), corrigé dans l'heure ; installation en production sur le VPS.</li>
+</ul>
+
+<h3>Jour 3 · mercredi 4 novembre : Adaptation et inspection</h3>
+<ul>
+    <li>Cohabitation du service avec l'infrastructure de l'équipe Réseau sur le même serveur (partie 06).</li>
+    <li><strong>Urgence sécurité</strong> : clé d'accès Google signalée publique par GitHub, avec des tentatives
+        d'utilisation par des tiers. Restreinte, remplacée, l'ancienne supprimée (partie 06).</li>
+    <li>Contenu demandé par le client : mentions légales, confidentialité et coordonnées <strong>fictives</strong>
+        (projet pédagogique).</li>
+    <li>Preuves produites sur le serveur réel : accès privé par tunnel, restauration testée, HTTPS valide.</li>
+    <li>Découverte que le réseau de l'école <strong>bloque</strong> l'adresse du service (catégorie « Dynamic DNS ») :
+        la démo se fera en 4G.</li>
+</ul>
+
+<h3>Jour 4 · jeudi 5 novembre : Finalisation et bilan</h3>
+<ul>
+    <li>Dernier Daily centré sur un incrément « Done » ; préparation des comptes de démo.</li>
+    <li>Sprint Review : le PO raconte, l'équipe manipule (script en partie 12).</li>
+    <li>Rétrospective interne (partie 11), compte-rendu posté sur Trello.</li>
+</ul>
+
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Changements demandés par le client</h2>
+<p class="lead">Le client a fait évoluer son besoin tout au long du sprint. Chaque demande a été reformulée par le PO,
+    tracée dans Trello (étiquette <span class="tag info">Changement</span>), estimée, puis intégrée ou négociée.</p>
+<div class="callout warn"><span class="callout-title">Arbitrage : « Je ne veux plus passer par le VPN »</span>
+    <p>Cette demande entrait en conflit avec le cadre imposé : <em>les données sensibles ne sont accessibles que par
+        un tunnel SSH ou un VPN</em>. Plutôt que de dire non, le PO a proposé un compromis :</p>
+    <ul>
+        <li><strong>la coach</strong> accède à son back-office depuis le site, comme ses clients, mais seulement
+            après connexion et avec le rôle Coach, vérifié par le serveur dans la base (jamais par le navigateur) ;</li>
+        <li><strong>les données brutes et les outils techniques</strong> (base de données, Adminer, supervision,
+            boîte d'e-mails de test, zone d'administration) restent invisibles depuis Internet et ne s'ouvrent
+            qu'à travers un tunnel SSH ;</li>
+        <li>une option (<code>ADMIN_VPN_ONLY=true</code>) remet le back-office derrière le VPN si le client change d'avis.</li>
+    </ul>
+    <p class="small"><strong>Dit au client :</strong> « Vous gérez vos rendez-vous et vos clients depuis votre téléphone,
+        sans rien installer. Les coffres-forts, eux, restent fermés à clé : seule l'équipe technique peut les ouvrir. »</p>
+</div>
+<table class="compact">
+    <thead><tr><th style="width:30%">Demande du client</th><th>Ce que nous avons fait</th><th style="width:12%">Statut</th></tr></thead>
+    <tbody>
+    <tr><td>Un site en anglais et un mode sombre</td><td>Traduction complète FR/EN vérifiée par TypeScript (aucune clé oubliée), thème sombre qui suit le téléphone ou le choix du visiteur.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td>Utiliser Trello plutôt que Jira</td><td>Backlog versionné et import automatique dans Trello.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td>Une interface pour la coach, qui relie son Calendly facilement</td><td>Back-office : la coach colle son jeton Calendly, choisit quel événement correspond à quel rendez-vous ; plus rien à configurer côté serveur.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td>Un site 100 % utilisable sur téléphone</td><td>Passe responsive sur toutes les pages, menu mobile, vérification à 375-390 px.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td>Une vitrine plus marquante, sereine, propre à la marque</td><td>Cadran-respiration animé, polices auto-hébergées, animations fluides et respect du réglage « réduire les animations ».</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td>Pas de locaux : tout se passe en visio</td><td>Textes revus, lien Google Meet récupéré depuis Calendly et envoyé dans le rappel.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td>Rappels 48 h (avec annulation) et 24 h (lien Meet, plus d'annulation) ; ajout aux agendas</td><td>Service de rappels, e-mails aux couleurs de la marque en FR/EN, boutons Google, Apple, Samsung, Outlook et fichier .ics.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td>Que la coach puisse prendre des notes sur ses clients</td><td>Notes privées épinglables dans la fiche client, jamais visibles du client, rappel « pas de données de santé ».</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td>Définir la coach principale, qui peut nommer d'autres coachs</td><td>Coach principale définie par configuration ; écran « Coachs » pour inviter ou retirer un coach.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td>Gérer ses rendez-vous depuis l'espace client</td><td>Rendez-vous à venir et passés, déplacement et annulation jusqu'à 24 h avant, réservation sans quitter l'espace.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td><strong>Retirer le VPN pour la coach</strong></td><td><strong>Négocié</strong> (encadré ci-dessus).</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td>Un pipeline complet et une mise en production automatique</td><td>GitHub Actions (5 contrôles) et déploiement automatique sur le VPS dès que la CI est verte.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td>Mentions légales et contact avec des données fictives</td><td>Entreprise, personne et coordonnées fictives et clairement signalées comme telles ; hébergeur réel.</td><td><span class="tag ok">Fait</span></td></tr>
+    </tbody>
+</table>
+
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Urgences et incidents</h2>
+<p class="lead">Pour chaque incident : comment il a été <strong>repéré</strong>, <strong>tracé</strong> et
+    <strong>réparti</strong>, puis <strong>traité</strong> et <strong>expliqué au client</strong> sans jargon.</p>
+
+<h3>1. Une clé d'accès Google exposée publiquement <span class="tag todo">Urgence</span></h3>
+<table class="compact">
+    <tbody>
+    <tr><td style="width:18%"><strong>Repéré</strong></td><td>Alerte automatique de GitHub (« secret scanning », mention <em>Public leak</em>)
+        sur la clé web Firebase écrite dans le code. En la restreignant, Google signalait en plus des appels à une API
+        de géocodage que Synégo n'utilise pas : <strong>quelqu'un testait la clé</strong>.</td></tr>
+    <tr><td><strong>Priorisé</strong></td><td>En tête du Sprint Backlog : risque de facturation (envoi de SMS frauduleux) et d'abus.</td></tr>
+    <tr><td><strong>Traité</strong></td><td>
+        <ol class="small">
+            <li>Clé restreinte aux seules adresses du site (référents HTTP) : refusée partout ailleurs.</li>
+            <li>SMS de connexion limités à la France et aux pays francophones proches.</li>
+            <li>Nouvelle clé créée, restreinte aux sites <em>et</em> aux deux seules API de connexion.</li>
+            <li>Clé retirée du code : elle ne vit plus que dans le fichier <code>.env</code> du serveur et des postes.</li>
+            <li>Ancienne clé supprimée chez Google (vérifié : <code>API_KEY_INVALID</code>), alerte GitHub close comme « révoquée ».</li>
+        </ol></td></tr>
+    <tr><td><strong>Dit au client</strong></td><td><em>« Une des clés de votre site avait été rendue visible par erreur. Nous l'avons
+        changée et l'ancienne ne fonctionne plus. Aucune donnée de vos clients n'a été touchée. »</em></td></tr>
+    </tbody>
+</table>
+
+<h3>2. Le serveur était déjà occupé par l'équipe Réseau <span class="tag part">Obstacle</span></h3>
+<table class="compact">
+    <tbody>
+    <tr><td style="width:18%"><strong>Repéré</strong></td><td>À l'installation, le dossier du service existait déjà sur le VPS, avec une autre
+        configuration : un squelette préparé par l'équipe Réseau (nginx, certificat pour <code>synego.duckdns.org</code>,
+        application de démonstration, base de test) et la supervision <strong>Zabbix</strong> servie par ce nginx sur le port 8443.</td></tr>
+    <tr><td><strong>Cause</strong></td><td>Le travail Dev et Réseau a avancé en parallèle sans inventaire partagé du serveur : exactement
+        le piège « chaque profil dans son coin » décrit dans le sujet.</td></tr>
+    <tr><td><strong>Traité</strong></td><td>Rien n'a été supprimé : l'ancien dossier a été mis de côté, la configuration étrangère écartée.
+        Le nginx du service reprend le rôle de l'ancien et continue de servir Zabbix sur 8443 ; le certificat
+        couvre les deux adresses. Vérifié après coup : Zabbix répond toujours.</td></tr>
+    <tr><td><strong>Reste à faire</strong></td><td>Deux tâches planifiées de l'équipe Réseau (sauvegarde et renouvellement du certificat) visent encore
+        l'ancien dossier : elles échouent sans dégât. À retirer par l'équipe Réseau, le service ayant les siennes.</td></tr>
+    <tr><td><strong>Dit au client</strong></td><td><em>« Les deux moitiés de l'équipe ont relié leur travail sur le même serveur : votre site et
+        l'outil de surveillance tournent ensemble. »</em></td></tr>
+    </tbody>
+</table>
+
+<h3>3. Le réseau de l'école bloque l'adresse du service <span class="tag part">Risque démo</span></h3>
+<table class="compact">
+    <tbody>
+    <tr><td style="width:18%"><strong>Repéré</strong></td><td>Depuis le réseau de l'école, le pare-feu <strong>Fortinet</strong> affiche « Access Blocked » :
+        les adresses <code>sslip.io</code> sont classées « Dynamic DNS ». Ce même équipement déchiffre et re-signe le
+        HTTPS : le cadenas paraît invalide alors que le serveur présente bien un certificat Let's Encrypt valide
+        (vérifié depuis le serveur et hors du réseau de l'école).</td></tr>
+    <tr><td><strong>Traité</strong></td><td>La démo se fera depuis un téléphone en <strong>4G</strong> (c'est d'ailleurs la preuve
+        « accessible depuis l'extérieur »). Solution durable : un vrai nom de domaine (quelques euros par an).</td></tr>
+    <tr><td><strong>Dit au client</strong></td><td><em>« Le réseau de l'école filtre ce type d'adresse. Vos visiteurs, eux, y accèdent normalement :
+        regardez sur ce téléphone en 4G. »</em></td></tr>
+    </tbody>
+</table>
+
+<h3>4. Incidents mineurs détectés par nos contrôles</h3>
+<ul>
+    <li><strong>Premier passage de la CI rouge</strong> : une règle d'exclusion mal écrite, combinée à un Mac
+        insensible à la casse, empêchait l'envoi de 6 tables et 8 migrations. La CI l'a vu avant la production ;
+        corrigé et vérifié sur un clone neuf.</li>
+    <li><strong>Une police bloquée par la politique de sécurité du site</strong> : un petit fichier de police
+        intégré au code était refusé par la CSP. Corrigé côté build, CSP gardée stricte.</li>
+    <li><strong>Page Rendez-vous sans marges sur ordinateur</strong>, repérée en préparant ce rapport : corrigée.</li>
+</ul>
+
+<div class="callout"><span class="callout-title">Procédures d'urgence prêtes</span>
+    <p class="small">Le dépôt contient une fiche par urgence probable (<code>docs/scrum/urgences.md</code>) :
+        site hors ligne, donnée effacée, compte compromis, attaque, certificat expiré, disque plein, panne d'un
+        service partenaire. Chacune donne la commande à lancer et la phrase à dire au client.</p></div>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Cadre technique imposé</h2>
+<table>
+    <thead><tr><th style="width:17%">Brique</th><th>Notre solution</th><th style="width:27%">Valeur pour le client</th><th style="width:11%">État</th></tr></thead>
+    <tbody>
+    <tr><td><strong>1. Hébergement VPS</strong></td>
+        <td>VPS Linode sous <strong>Linux Ubuntu 26.10</strong>, à jour à l'installation (« 0 updates »). Services en conteneurs Docker.
+            Pare-feu UFW : seuls SSH, 80, 443, 8443 (Zabbix) et 51820/udp sont ouverts ; tout le reste écoute
+            sur l'interface locale. <em>Pourquoi Linux</em> : standard des serveurs web, léger, gratuit, toutes nos briques y tournent nativement.</td>
+        <td>Le site est en ligne en permanence, chez un hébergeur reconnu.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td><strong>2. Accès sécurisé aux données</strong></td>
+        <td>Base de données, Adminer, Uptime Kuma, Mailpit et zone d'administration publiés sur <code>127.0.0.1</code> uniquement :
+            <strong>refusés depuis Internet, accessibles par tunnel SSH</strong> (preuve en partie 08). Scripts WireGuard
+            prêts (<code>deploy/vps/02-wireguard.sh</code>) pour passer au VPN.</td>
+        <td>Même avec un mot de passe volé, personne n'atteint les données brutes depuis Internet.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td><strong>3. Base SQL</strong></td>
+        <td>PostgreSQL 17, schéma <code>synego</code>. Comptes séparés : <code>synego_app</code> (l'API : lecture/écriture des lignes, aucun
+            droit sur la structure), <code>synego_owner</code> (migrations), <code>synego_backup</code> et <code>synego_readonly</code> (lecture seule).</td>
+        <td>Chaque programme n'a que les droits dont il a besoin.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td><strong>4. Sauvegarde et restauration</strong></td>
+        <td>Sauvegarde chiffrée (AES-256) chaque nuit à 2 h, gardée 14 jours, et <strong>avant chaque mise en production</strong>.
+            Restauration testée sur une copie de la base (preuve en partie 08). Documents supprimés conservés 30 jours.</td>
+        <td>Une erreur ne fait rien perdre.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td><strong>5. Espace de tickets</strong></td>
+        <td>Développé dans le service : demandes de devis et de contact depuis le site, demandes des clients depuis leur
+            espace, fil de réponses, statuts Envoyée / En cours / Close dans le back-office. <em>Pourquoi développé</em> :
+            les demandes sont liées au compte du client et à ses rendez-vous, sans outil de plus à apprendre.</td>
+        <td>Aucune demande perdue dans une boîte mail.</td><td><span class="tag ok">Fait</span></td></tr>
+    <tr><td><strong>Surveillance</strong> (DoD)</td>
+        <td>Point de santé <code>/api/health</code> (base + stockage), Uptime Kuma déployé (accès par tunnel), supervision
+            Zabbix de l'équipe Réseau, CI qui bloque toute version cassée.</td>
+        <td>On est prévenu avant les clients.</td><td><span class="tag part">Partiel</span></td></tr>
+    </tbody>
+</table>
+<div class="callout warn"><span class="callout-title">Honnêteté sur l'état</span>
+    <p class="small">Le moniteur et la notification d'alerte d'Uptime Kuma (ou un déclencheur Zabbix sur <code>/api/health</code>)
+        doivent encore être configurés et testés devant le PO avant la Sprint Review. Le VPN WireGuard est prêt mais non
+        activé en production : l'accès privé passe aujourd'hui par tunnel SSH, ce que le cadre autorise.</p></div>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Fiches de preuve</h2>
+<p class="lead">Pour chaque story : ce que veut le client, le test que le PO montrera, le résultat obtenu et les
+    cases de la Definition of Done cochées. Les résultats ci-dessous sont les sorties réelles des tests, lancés sur
+    le serveur de production le 4 novembre 2026.</p>
+
+<div class="proof">
+    <div class="proof-head"><h4>S1 · « Mes visiteurs me trouvent à une adresse simple, avec le cadenas »</h4><span class="tag ok">Démontré</span></div>
+    <dl><dt>Le test</dt><dd>Ouvrir l'adresse sur un téléphone en 4G ; vérifier le certificat et la redirection HTTP → HTTPS.</dd></dl>
+<pre><span class="c"># depuis Internet</span>
+https://172-239-9-200.sslip.io/             <span class="ok">200</span>   certificat vérifié
+https://172-239-9-200.sslip.io/api/health   <span class="ok">200</span>   {"status":"ok","database":true,"documents":true}
+http://172-239-9-200.sslip.io/              <span class="ok">301</span>   → https://…
+<span class="c"># certificat</span>
+émetteur : Let's Encrypt (YE2) · noms : 172-239-9-200.sslip.io, synego.duckdns.org · valide jusqu'au 1er février 2027</pre>
+    <dl><dt>DoD</dt><dd><span class="check yes">✓</span> accessible de l'extérieur · <span class="check yes">✓</span> HTTPS valide ·
+        <span class="check yes">✓</span> schéma à jour · <span class="check yes">✓</span> FR/EN, clair/sombre, mobile ·
+        <span class="check half">◐</span> alerte à tester · <span class="check no">○</span> acceptation PO (jeudi)</dd></dl>
+</div>
+
+<div class="proof">
+    <div class="proof-head"><h4>S7 · « Mes informations sensibles ne sont accessibles que par un accès privé »</h4><span class="tag ok">Démontré</span></div>
+    <dl><dt>Le test</dt><dd>Tenter d'ouvrir la base et les outils depuis Internet, puis à travers un tunnel SSH.</dd></dl>
+<pre><span class="c"># sans tunnel, depuis Internet</span>
+port 8082 (Adminer, base)      <span class="ko">refusé</span>
+port 3001 (Uptime Kuma)        <span class="ko">refusé</span>
+port 8025 (Mailpit)            <span class="ko">refusé</span>
+port 8444 (zone admin)         <span class="ko">refusé</span>
+port 5432 (PostgreSQL)         <span class="ko">refusé</span>
+<span class="c"># avec un tunnel SSH (clé de l'équipe)</span>
+Adminer (base)                 <span class="ok">200</span>
+Uptime Kuma                    <span class="ok">302</span>  → tableau de bord
+Zone admin (8444)              <span class="ok">200</span>
+<span class="c"># API d'administration sans être connecté</span>
+https://…/api/admin/overview   <span class="ko">401</span></pre>
+    <dl><dt>DoD</dt><dd><span class="check yes">✓</span> données sensibles uniquement par tunnel · <span class="check yes">✓</span> règles d'accès documentées (partie 09) ·
+        <span class="check yes">✓</span> HTTPS valide · <span class="check no">○</span> acceptation PO (jeudi)</dd></dl>
+</div>
+
+<div class="proof">
+    <div class="proof-head"><h4>S8 · « Si une information est effacée par erreur, on la récupère »</h4><span class="tag ok">Démontré</span></div>
+    <dl><dt>Le test</dt><dd>Restaurer la sauvegarde automatique dans une copie de la base, y effacer volontairement une
+        information, restaurer à nouveau : l'information revient. La base réelle n'est jamais touchée.</dd></dl>
+<pre>1) Sauvegarde automatique la plus récente : synego_2026-11-04_090724.dump.enc (chiffrée AES-256)
+2) Base réelle      : 1 compte(s), 0 ticket(s), 0 rendez-vous, 0 note(s)
+3) Copie restaurée  : 1 compte(s), 0 ticket(s), 0 rendez-vous, 0 note(s)
+4) Effacement volontaire, dans la copie, du compte 01a1a3be… (rôle Coach)
+   Copie après effacement : <span class="ko">0 compte(s)</span>
+5) Nouvelle restauration : <span class="ok">1 compte(s)</span>
+   Compte effacé retrouvé : <span class="ok">OUI</span>
+6) Copie temporaire supprimée. Base réelle inchangée : 1 compte(s)</pre>
+    <dl><dt>DoD</dt><dd><span class="check yes">✓</span> sauvegarde existante · <span class="check yes">✓</span> restauration testée ·
+        <span class="check yes">✓</span> sauvegarde chiffrée · <span class="check no">○</span> acceptation PO (jeudi)</dd></dl>
+    <p class="small muted">Pendant la démo : supprimer un document dans l'espace client, lancer <code>restore.sh</code>,
+        le document réapparaît (le fichier est conservé 30 jours).</p>
+</div>
+
+<div class="proof">
+    <div class="proof-head"><h4>S10 · « Mes clients posent leurs questions et suivent les réponses »</h4><span class="tag part">À montrer en direct</span></div>
+    <dl><dt>Le test</dt><dd>Un visiteur envoie une demande de devis (référence n° affichée) → elle apparaît dans
+        « Demandes à traiter » du back-office → la coach répond → le client voit la réponse dans son espace →
+        la coach clôt la demande.</dd>
+        <dt>Résultat</dt><dd>Démonstration en direct jeudi (nécessite les comptes de démo). Tickets inclus dans la sauvegarde chiffrée.</dd>
+        <dt>DoD</dt><dd><span class="check yes">✓</span> accessible de l'extérieur · <span class="check yes">✓</span> HTTPS ·
+            <span class="check yes">✓</span> sauvegardé · <span class="check no">○</span> démontré et accepté</dd></dl>
+</div>
+
+<div class="proof">
+    <div class="proof-head"><h4>Mise en production fiable · « Une mise à jour ne casse rien »</h4><span class="tag ok">Démontré</span></div>
+    <dl><dt>Le test</dt><dd>Pousser une correction : le serveur attend la CI, sauvegarde, déploie, vérifie la santé.</dd></dl>
+<pre>[synego-deploy] 09:18:26 CI en cours pour 26ed77d : on attend le feu vert.
+[synego-deploy] 09:20:32 Déploiement 0728593 → 26ed77d : Contenu : mentions légales…
+[backup]        09:20:32 OK : synego_2026-11-04_082032.dump.enc (24.0K)
+[synego-deploy] 09:20:43 <span class="ok">En ligne : 26ed77d.</span></pre>
+</div>
+
+<div class="proof">
+    <div class="proof-head"><h4>S11 · « Mes visiteurs lisent le site sur téléphone, en anglais ou de nuit »</h4><span class="tag ok">Démontré</span></div>
+    <div class="figs phone">
+        <figure><img src="../img/accueil-mobile.jpg" alt=""><figcaption>Téléphone, français, clair</figcaption></figure>
+        <figure><img src="../img/menu-mobile.jpg" alt=""><figcaption>Menu mobile</figcaption></figure>
+        <figure><img src="../img/rendez-vous-mobile-sombre.jpg" alt=""><figcaption>Rendez-vous, thème sombre</figcaption></figure>
+    </div>
+</div>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Architecture et règles d'accès</h2>
+<figure class="diagram"><!--include:architecture.svg--><figcaption>Architecture en production au 4 novembre 2026 (schéma à jour).</figcaption></figure>
+
+<h3>Qui peut parler à quoi</h3>
+<table class="compact">
+    <thead><tr><th>Depuis</th><th>Vers</th><th>Port</th><th>Autorisé</th><th>Pourquoi</th></tr></thead>
+    <tbody>
+    <tr><td>Internet</td><td>nginx</td><td>80, 443</td><td><span class="tag ok">Oui</span></td><td>Site et API publics (80 redirige vers 443)</td></tr>
+    <tr><td>Internet</td><td>Back-office <code>/admin</code></td><td>443</td><td><span class="tag ok">Oui</span></td><td>Après connexion et rôle Coach vérifié en base</td></tr>
+    <tr><td>Internet</td><td>Zabbix (équipe Réseau)</td><td>8443</td><td><span class="tag ok">Oui</span></td><td>Interface de supervision, avec son propre compte</td></tr>
+    <tr><td>Internet</td><td>SSH</td><td>22</td><td><span class="tag ok">Oui</span></td><td>Administration par l'équipe (clé)</td></tr>
+    <tr><td>Internet</td><td>PostgreSQL, Adminer, Uptime Kuma, Mailpit, zone admin</td><td>5432, 8082, 3001, 8025, 8444</td><td><span class="tag todo">Non</span></td><td>Écoutent sur 127.0.0.1 : tunnel SSH obligatoire</td></tr>
+    <tr><td>nginx</td><td>API</td><td>8080 (Docker)</td><td><span class="tag ok">Oui</span></td><td>Seul point d'entrée de l'API</td></tr>
+    <tr><td>API</td><td>PostgreSQL</td><td>5432 (Docker)</td><td><span class="tag ok">Oui</span></td><td>Compte <code>synego_app</code>, sans droit sur la structure</td></tr>
+    <tr><td>Sauvegarde</td><td>PostgreSQL</td><td>5432 (Docker)</td><td><span class="tag ok">Oui</span></td><td>Compte <code>synego_backup</code>, lecture seule</td></tr>
+    <tr><td>API</td><td>Firebase, Calendly, SMTP</td><td>443, 587</td><td><span class="tag ok">Oui</span></td><td>Vérification des jetons, rendez-vous, rappels</td></tr>
+    <tr><td>Serveur</td><td>GitHub</td><td>443</td><td><span class="tag ok">Oui</span></td><td>Récupère la branche main, lit l'état de la CI</td></tr>
+    </tbody>
+</table>
+<div class="callout"><span class="callout-title">Piège évité : Docker contourne le pare-feu</span>
+    <p class="small">Un port publié par Docker passe outre UFW. C'est pourquoi seuls 80, 443 et 8443 sont publiés sur
+        toutes les interfaces ; tous les autres sont liés explicitement à <code>127.0.0.1</code> (variable <code>ADMIN_BIND_IP</code>).</p></div>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Definition of Done : état par story</h2>
+<p class="small muted">✓ fait et prouvé · ◐ partiel · ○ à faire avant ou pendant la Sprint Review.
+    Colonnes : Ext. = accessible de l'extérieur · HTTPS · Règles = règles d'accès documentées · Schéma · Surv. = surveillé avec alerte ·
+    Privé = données sensibles par tunnel · Sauv. = sauvegarde et restauration testées · Accept. = démontré au PO et accepté.</p>
+<table class="compact">
+    <thead><tr><th>Story</th><th>Ext.</th><th>HTTPS</th><th>Règles</th><th>Schéma</th><th>Surv.</th><th>Privé</th><th>Sauv.</th><th>Accept.</th></tr></thead>
+    <tbody>
+    <tr><td>S1 · adresse simple et sécurisée</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○</td></tr>
+    <tr><td>S2 · séminaires et devis</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○</td></tr>
+    <tr><td>S3 · réservation prospects</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○ *</td></tr>
+    <tr><td>S4 · connexion e-mail, SMS, Google</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○</td></tr>
+    <tr><td>S5 · documents confidentiels</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○</td></tr>
+    <tr><td>S6 · séances réservées aux clients signés</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○ *</td></tr>
+    <tr><td>S7 · accès privé aux données</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○</td></tr>
+    <tr><td>S8 · récupération après effacement</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○</td></tr>
+    <tr><td>S9 · être prévenue en cas de panne</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>○</td><td>✓</td><td>✓</td><td>○</td></tr>
+    <tr><td>S10 · tickets</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○</td></tr>
+    <tr><td>S11 · mobile, anglais, nuit</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○</td></tr>
+    <tr><td>S12 · rappels 48 h / 24 h</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○ **</td></tr>
+    <tr><td>S13 · notes de la coach</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td><td>✓</td><td>✓</td><td>○</td></tr>
+    </tbody>
+</table>
+<p class="small">* La coach doit relier son compte Calendly depuis le back-office (les liens de production sont encore
+    ceux par défaut) et aligner les durées de ses événements Calendly sur les textes du site (45, 20 et 60 minutes).<br>
+    ** En production, aucun serveur d'e-mails réel n'est configuré : les rappels arrivent dans Mailpit (accessible par tunnel).
+    Un compte SMTP (par exemple Brevo) suffit pour les envoyer réellement.</p>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Rétrospective</h2>
+<p class="lead">Préparée à partir des faits du sprint, à compléter et valider en équipe jeudi (sans le client), puis
+    postée sur Trello.</p>
+<div class="grid3">
+    <div class="card"><h4>Start</h4><ul class="small">
+        <li>Un <strong>inventaire partagé du serveur</strong> (qui installe quoi, où, sur quel port) dès le jour 1.</li>
+        <li>Une revue « aucun secret dans le code » avant chaque push.</li>
+        <li>Tester la démo depuis le réseau où elle aura lieu, dès le jour 2.</li>
+        <li>Configurer l'alerte de surveillance en même temps que le service qu'elle surveille.</li></ul></div>
+    <div class="card"><h4>Stop</h4><ul class="small">
+        <li>Avancer Dev et Réseau en parallèle sans point de jonction sur le serveur.</li>
+        <li>Écrire des valeurs « par défaut » sensibles dans le code, même publiques.</li>
+        <li>Laisser des tâches planifiées pointer vers un dossier qui peut bouger.</li></ul></div>
+    <div class="card"><h4>Continue</h4><ul class="small">
+        <li>La CI qui bloque toute version cassée : elle a arrêté le seul oubli grave avant la prod.</li>
+        <li>La sauvegarde systématique avant chaque mise en production.</li>
+        <li>Les preuves réelles, lancées sur le serveur, plutôt que des captures préparées.</li>
+        <li>Le langage client : chaque urgence a sa phrase sans jargon.</li></ul></div>
+</div>
+
+<h3>Collaboration Dev ↔ Réseau</h3>
+<table class="compact">
+    <thead><tr><th style="width:50%">Ce qui a marché</th><th>Ce qui a bloqué</th></tr></thead>
+    <tbody><tr>
+        <td><ul class="small"><li>Le serveur, le domaine, le certificat et la supervision Zabbix étaient prêts quand le service est arrivé.</li>
+            <li>La cohabitation a été réglée sans rien supprimer : Zabbix tourne derrière le nginx du service.</li>
+            <li>Le cadre imposé (accès privé) a servi d'argument commun pour négocier avec le client.</li></ul></td>
+        <td><ul class="small"><li>Le déploiement a d'abord échoué faute de savoir ce qui existait déjà sur le serveur.</li>
+            <li>Deux tâches planifiées Réseau visent maintenant un dossier déplacé.</li>
+            <li>Le VPN WireGuard n'a pas été activé : l'accès privé repose sur le tunnel SSH.</li></ul></td>
+    </tr></tbody>
+</table>
+
+<h3>Actions concrètes</h3>
+<table class="compact">
+    <thead><tr><th>Action</th><th>Qui</th><th>Quand</th></tr></thead>
+    <tbody>
+    <tr><td>Configurer et tester l'alerte (Uptime Kuma ou Zabbix) sur <code>/api/health</code>, notification sur téléphone</td><td>Réseau + Dev</td><td>jeudi matin</td></tr>
+    <tr><td>Retirer les deux tâches planifiées obsolètes ; tenir l'inventaire du serveur dans le dépôt</td><td>Réseau</td><td>jeudi matin</td></tr>
+    <tr><td>Relier Calendly depuis le back-office, aligner les durées des événements</td><td>PO avec la coach</td><td>avant la démo</td></tr>
+    <tr><td>Passer SSH en clé uniquement, changer le mot de passe root</td><td>Réseau</td><td>sprint suivant</td></tr>
+    <tr><td>Sauvegardes copiées hors du VPS ; vrai nom de domaine (non filtré « Dynamic DNS ») ; SMTP réel pour les rappels</td><td>Réseau, Dev, PO</td><td>sprint suivant</td></tr>
+    </tbody>
+</table>
+
+<!-- ===================================================================== -->
+<h2 class="chapter">Bilan et préparation de la démo</h2>
+<div class="stats">
+    <div class="stat"><b>13</b><span>stories livrées en production</span></div>
+    <div class="stat"><b>5 / 5</b><span>briques du cadre technique en place</span></div>
+    <div class="stat"><b>3</b><span>preuves lancées sur le serveur réel</span></div>
+    <div class="stat"><b>1</b><span>urgence sécurité traitée de bout en bout</span></div>
+</div>
+
+<h3>Script de la Sprint Review</h3>
+<p>Le PO raconte, un membre de l'équipe manipule. On montre, on ne raconte pas. <strong>Tout se fait sur un téléphone en 4G</strong>.
+    Le détail des écrans et de l'exploitation figure dans la documentation utilisateur et la documentation technique.</p>
+<table class="compact">
+    <thead><tr><th>#</th><th style="width:34%">Ce que le client veut</th><th>Ce qu'on montre</th></tr></thead>
+    <tbody>
+    <tr><td>1</td><td>« Mes visiteurs me trouvent à une adresse simple »</td><td>Ouvrir l'adresse en 4G : cadenas, FR puis EN, thème sombre</td></tr>
+    <tr><td>2</td><td>« Je mets en avant mes séminaires, sans prix »</td><td>Page Séminaires, « sur devis » ; envoyer une demande de devis</td></tr>
+    <tr><td>3</td><td>« Un prospect prend rendez-vous sans m'appeler »</td><td>Page Rendez-vous : réserver un audit dans Calendly, l'ajouter à son agenda</td></tr>
+    <tr><td>4</td><td>« Mes clients ont un espace privé »</td><td>Connexion Google puis par SMS ; documents, rendez-vous, demandes</td></tr>
+    <tr><td>5</td><td>« Les séances de suivi sont pour mes clients signés »</td><td>Compte non signé : séance verrouillée ; back-office : « Client signé » ; la séance s'ouvre</td></tr>
+    <tr><td>6</td><td>« Mes informations sensibles sont protégées »</td><td>Sans tunnel : Adminer ne répond pas ; avec le tunnel SSH : il s'ouvre, en lecture seule</td></tr>
+    <tr><td>7</td><td>« Une erreur ne fait rien perdre »</td><td>Supprimer un document, lancer la restauration, il réapparaît</td></tr>
+    <tr><td>8</td><td>« Mes clients posent leurs questions »</td><td>La demande de l'étape 2 : réponse depuis le back-office, visible côté client, clôture</td></tr>
+    <tr><td>9</td><td>« Je sais quand quelque chose ne va pas »</td><td>Arrêter l'API : l'alerte arrive sur le téléphone ; relancer</td></tr>
+    </tbody>
+</table>
+
+<h3>Avant la démo</h3>
+<ul>
+    <li>Partage de connexion 4G testé sur le téléphone et l'ordinateur de démo (le réseau de l'école bloque l'adresse).</li>
+    <li>Un compte client de démo (non signé) et le compte coach ; Calendly relié depuis le back-office.</li>
+    <li>Une sauvegarde récente : <code>docker compose exec backup backup.sh</code>.</li>
+    <li>L'alerte testée une fois, le tunnel SSH ouvert dans un terminal prêt.</li>
+</ul>
+
+</body>
+</html>
